@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Prevent crawling of user-specific routes
+Disallow: /cart
+Disallow: /checkout
+Disallow: /my-orders
+Disallow: /login
+
+Sitemap: https://www.mangalik.store/sitemap.xml
