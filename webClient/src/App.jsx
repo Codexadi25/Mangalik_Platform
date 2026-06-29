@@ -70,6 +70,7 @@ function App() {
                 <Route path="/shipping-policy" element={<ShippingPolicy />} />
 
                 <Route path="*" element={<NotFound />} />
+                
               </Routes>
             </MainLayout>
             </Bootstrap>
