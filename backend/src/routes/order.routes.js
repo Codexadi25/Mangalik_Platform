@@ -9,5 +9,6 @@ router.post("/checkout", ctrl.checkout);
 router.post("/verify-payment", ctrl.verifyPayment);
 router.get("/my", ctrl.getMyOrders);
 router.get("/:id", ctrl.getOrderById);
+router.post("/:id/replace", ctrl.replaceOrder);
 
 module.exports = router;

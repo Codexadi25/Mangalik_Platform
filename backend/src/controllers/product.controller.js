@@ -8,7 +8,12 @@ const getProducts = asyncHandler(async (req, res) => {
 
   const filter = { isActive: true, isApprovedByAdmin: true };
   if (q) filter.$text = { $search: q };
-  if (category) filter.category = category;
+  if (category) {
+    const CategoryModel = require("../models/Category.model");
+    const cat = await CategoryModel.findOne({ slug: category });
+    if (cat) filter.category = cat._id;
+    else return res.status(200).json({ success: true, data: [], pagination: { total: 0, page: 1, pages: 0 } });
+  }
   if (minPrice || maxPrice) {
     filter.basePrice = {};
     if (minPrice) filter.basePrice.$gte = Number(minPrice);

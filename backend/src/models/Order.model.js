@@ -70,6 +70,8 @@ const orderSchema = new mongoose.Schema(
         "delivered",
         "cancelled",
         "returned",
+        "replacement_requested",
+        "replaced"
       ],
       default: "placed",
       index: true,

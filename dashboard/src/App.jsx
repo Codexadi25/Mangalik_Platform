@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { Provider, useDispatch } from "react-redux";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { store } from "./redux/store/store";
 import { dashboardTheme } from "./theme/theme";
@@ -26,6 +27,7 @@ import Orders from "./pages/admin/Orders";
 import Vendors from "./pages/admin/Vendors";
 import Staff from "./pages/admin/Staff";
 import Cms from "./pages/admin/Cms";
+import Coupons from "./pages/admin/Coupons";
 
 import ManagerOverview from "./pages/manager/Overview";
 import VendorCatalog from "./pages/vendor/MyCatalog";
@@ -71,6 +73,7 @@ function App() {
               <Route path="/admin/vendors" element={<RoleGuard allow={["admin", "superadmin"]}><DashboardLayout><Vendors /></DashboardLayout></RoleGuard>} />
               <Route path="/admin/staff" element={<RoleGuard allow={["admin", "superadmin"]}><DashboardLayout><Staff /></DashboardLayout></RoleGuard>} />
               <Route path="/admin/cms" element={<RoleGuard allow={["admin", "superadmin"]}><DashboardLayout><Cms /></DashboardLayout></RoleGuard>} />
+              <Route path="/admin/coupons" element={<RoleGuard allow={["admin", "superadmin"]}><DashboardLayout><Coupons /></DashboardLayout></RoleGuard>} />
 
               {/* ---------------- MANAGER ---------------- */}
               <Route path="/manager/overview" element={<RoleGuard allow={["manager", "admin", "superadmin"]}><DashboardLayout><ManagerOverview /></DashboardLayout></RoleGuard>} />

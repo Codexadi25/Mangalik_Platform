@@ -28,11 +28,13 @@ app.use(
 // --- Health check (always reachable, bypasses kill-switch, used by load balancers) ---
 app.get("/health", (req, res) => res.status(200).json({ status: "ok", service: "mangalik-api" }));
 
-// --- Superadmin platform-wide kill-switch enforcement (runs before all /api routes) ---
+// --- Superadmin platform-wide kill-switch enforcement ---
+// Auth routes must remain accessible so the superadmin can actually log in!
+app.use("/api/auth", require("./routes/auth.routes"));
+
 app.use("/api", enforceGlobalKillSwitch);
 
 // --- Route mounting: single unified Express backend serving BOTH frontends ---
-app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/products", require("./routes/product.routes"));
 app.use("/api/categories", require("./routes/category.routes"));
 app.use("/api/cart", require("./routes/cart.routes"));
@@ -45,6 +47,7 @@ app.use("/api/sales-partners", require("./routes/salesPartner.routes"));
 app.use("/api/support", require("./routes/support.routes"));
 app.use("/api/users", require("./routes/user.routes"));
 app.use("/api/superadmin", require("./routes/superadmin.routes"));
+app.use("/api/coupons", require("./routes/coupon.routes"));
 
 // --- 404 + global error handler ---
 app.use(notFound);

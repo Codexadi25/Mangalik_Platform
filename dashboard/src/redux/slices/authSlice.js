@@ -44,10 +44,12 @@ const authSlice = createSlice({
     builder
       .addCase(firebaseLoginThunk.fulfilled, (state, action) => { state.user = action.payload; state.status = "succeeded"; })
       .addCase(firebaseLoginThunk.rejected, (state, action) => { state.error = action.payload; state.status = "failed"; })
-      .addCase(fetchMeThunk.fulfilled, (state, action) => { state.user = action.payload; })
+      .addCase(fetchMeThunk.pending, (state) => { state.status = "loading"; })
+      .addCase(fetchMeThunk.fulfilled, (state, action) => { state.user = action.payload; state.status = "succeeded"; })
+      .addCase(fetchMeThunk.rejected, (state) => { state.status = "failed"; state.user = null; })
       .addCase(localLoginThunk.fulfilled, (state, action) => { state.user = action.payload; state.status = "succeeded"; })
       .addCase(localLoginThunk.rejected, (state, action) => { state.error = action.payload; state.status = "failed"; })
-      .addCase(logoutThunk.fulfilled, (state) => { state.user = null; });
+      .addCase(logoutThunk.fulfilled, (state) => { state.user = null; state.status = "idle"; });
   },
 });
 

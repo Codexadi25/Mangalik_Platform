@@ -4,6 +4,7 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import { Provider, useDispatch } from "react-redux";
 import { HelmetProvider } from "react-helmet-async";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { store } from "./redux/store/store";
 import { lightTheme } from "./theme/theme";
@@ -23,7 +24,8 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import RefundPolicy from "./pages/RefundPolicy";
 import ShippingPolicy from "./pages/ShippingPolicy";
-import MyOrders from "./pages/MyOrders";
+import AccountDashboard from "./pages/AccountDashboard";
+import OrderDetails from "./pages/OrderDetails";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import RouteGuard from "./components/common/RouteGuard";
@@ -36,6 +38,8 @@ const Bootstrap = ({ children }) => {
   return children;
 };
 
+import useServerWakeup from "./hooks/useServerWakeup";
+
 /**
  * Every storefront route is wrapped in <RouteGuard> which checks the
  * superadmin's `disabledRoutes` list (fetched from /api/ads/config-like
@@ -43,6 +47,7 @@ const Bootstrap = ({ children }) => {
  * the route has been switched off — without any code change/deploy.
  */
 function App() {
+  useServerWakeup();
   return (
     <Provider store={store}>
       <ThemeProvider theme={lightTheme}>
@@ -57,7 +62,8 @@ function App() {
                 <Route path="/products/:slug" element={<RouteGuard route="/products"><ProductDetail /></RouteGuard>} />
                 <Route path="/cart" element={<RouteGuard route="/cart"><CartPage /></RouteGuard>} />
                 <Route path="/checkout" element={<RouteGuard route="/checkout"><CheckoutPage /></RouteGuard>} />
-                <Route path="/orders" element={<MyOrders />} />
+                <Route path="/account" element={<RouteGuard route="/account"><AccountDashboard /></RouteGuard>} />
+                <Route path="/orders/:id" element={<RouteGuard route="/orders/:id"><OrderDetails /></RouteGuard>} />
                 <Route path="/login" element={<LoginPage />} />
 
                 <Route path="/about" element={<AboutUs />} />

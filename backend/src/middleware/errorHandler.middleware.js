@@ -31,7 +31,7 @@ const errorHandler = (err, req, res, next) => {
   if (statusCode >= 500) {
     logger.error(`${req.method} ${req.originalUrl} → ${message}`, { stack: err.stack });
   } else {
-    logger.warn(`${req.method} ${req.originalUrl} → ${message}`);
+    logger.debug(`${req.method} ${req.originalUrl} → ${message}`);
   }
 
   // Never leak stack traces or internal details in production responses.

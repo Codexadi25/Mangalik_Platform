@@ -63,6 +63,8 @@ const checkout = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Online payment is currently unavailable.");
   }
 
+  const { couponCode } = req.body;
+
   const cart = await Cart.findOne({ user: req.user._id });
   if (!cart || cart.items.length === 0) throw new ApiError(400, "Your cart is empty.");
 
@@ -70,8 +72,27 @@ const checkout = asyncHandler(async (req, res) => {
   if (items.length === 0) throw new ApiError(400, "No valid items found in cart.");
 
   const shippingFee = subtotal > 999 ? 0 : 79;
-  const gstAmount = Math.round(subtotal * 0.05 * 100) / 100;
-  const total = subtotal + shippingFee + gstAmount;
+  
+  let discount = 0;
+  let appliedCoupon = null;
+  if (couponCode) {
+    const Coupon = require("../models/Coupon.model");
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+    if (coupon && coupon.isActive && (!coupon.minOrderValue || subtotal >= coupon.minOrderValue)) {
+      if (coupon.usageLimit === 0 || coupon.usedCount < coupon.usageLimit) {
+        if (coupon.type === "flat") discount = coupon.value;
+        else if (coupon.type === "percentage") {
+          discount = (subtotal * coupon.value) / 100;
+          if (coupon.maxDiscount && discount > coupon.maxDiscount) discount = coupon.maxDiscount;
+        }
+        appliedCoupon = coupon;
+      }
+    }
+  }
+
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const gstAmount = Math.round(discountedSubtotal * 0.05 * 100) / 100;
+  const total = discountedSubtotal + shippingFee + gstAmount;
   const orderNumber = generateOrderNumber();
 
   if (paymentMethod === "razorpay") {
@@ -82,6 +103,8 @@ const checkout = asyncHandler(async (req, res) => {
       items,
       shippingAddress,
       subtotal,
+      discount,
+      couponCode: appliedCoupon?.code,
       shippingFee,
       gstAmount,
       total,
@@ -102,6 +125,8 @@ const checkout = asyncHandler(async (req, res) => {
     items,
     shippingAddress,
     subtotal,
+    discount,
+    couponCode: appliedCoupon?.code,
     shippingFee,
     gstAmount,
     total,
@@ -156,4 +181,26 @@ const getOrderById = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: order });
 });
 
-module.exports = { checkout, verifyPayment, getMyOrders, getOrderById };
+const replaceOrder = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new ApiError(404, "Order not found.");
+  if (String(order.user) !== String(req.user._id)) {
+    throw new ApiError(403, "Not authorized to replace this order.");
+  }
+  if (order.status !== "delivered") {
+    throw new ApiError(400, "Only delivered orders can be replaced.");
+  }
+
+  order.status = "replacement_requested";
+  order.statusHistory.push({
+    status: "replacement_requested",
+    note: reason || "User requested replacement",
+    changedBy: req.user._id,
+  });
+  await order.save();
+
+  res.status(200).json({ success: true, data: order, message: "Replacement requested successfully." });
+});
+
+module.exports = { checkout, verifyPayment, getMyOrders, getOrderById, replaceOrder };

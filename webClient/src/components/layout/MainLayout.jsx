@@ -34,18 +34,10 @@ const navLinks = [
 const MainLayout = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const cartCount = useSelector((s) => s.cart.items?.length || 0);
+  const user = useSelector((s) => s.auth.user);
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* ---------- Top utility strip ---------- */}
-      <Box sx={{ bgcolor: "secondary.main", color: "#fff", py: 0.5 }}>
-        <Container>
-          <Typography variant="caption" align="center" display="block">
-            🔱 Incorporating AI Innovations in Z+ ERA — A-Z Poojan Samagri, Delivered with Devotion
-          </Typography>
-        </Container>
-      </Box>
-
       {/* ---------- Header ---------- */}
       <AppBar position="sticky" elevation={0}>
         <Container>
@@ -54,14 +46,18 @@ const MainLayout = ({ children }) => {
               <IconButton sx={{ display: { md: "none" } }} onClick={() => setDrawerOpen(true)}>
                 <MenuIcon />
               </IconButton>
-              <Typography
-                variant="h5"
-                component={RouterLink}
-                to="/"
-                sx={{ fontWeight: 800, color: "primary.main", textDecoration: "none", letterSpacing: 0.5 }}
+              <Box 
+                component={RouterLink} 
+                to="/" 
+                sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}
               >
-                मंगलिक · Mangalik
-              </Typography>
+                <Box 
+                  component="img" 
+                  src="/Mangalik.png" 
+                  alt="Mangalik Logo" 
+                  sx={{ height: 80, width: "auto", objectFit: "contain" }} 
+                />
+              </Box>
             </Stack>
 
             <Stack direction="row" spacing={3} sx={{ display: { xs: "none", md: "flex" } }}>
@@ -80,7 +76,7 @@ const MainLayout = ({ children }) => {
             </Stack>
 
             <Stack direction="row" spacing={1}>
-              <IconButton component={RouterLink} to="/login">
+              <IconButton component={RouterLink} to={user ? "/account" : "/login"}>
                 <PersonOutlineIcon />
               </IconButton>
               <IconButton component={RouterLink} to="/cart">
@@ -118,9 +114,12 @@ const MainLayout = ({ children }) => {
         <Container>
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" fontWeight={800} gutterBottom>
-                मंगलिक · Mangalik
-              </Typography>
+              <Box 
+                component="img" 
+                src="/Mangalik.png" 
+                alt="Mangalik Logo" 
+                sx={{ height: 80, width: "auto", objectFit: "contain", mb: 1 }} 
+              />
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 A-Z Poojan Samagri for every Hindu ritual, yagna, and hawan — delivered to your
                 doorstep with purity and devotion.

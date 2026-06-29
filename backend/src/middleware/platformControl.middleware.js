@@ -56,6 +56,28 @@ const enforceGlobalKillSwitch = asyncHandler(async (req, res, next) => {
   if (req.path.startsWith("/api/superadmin")) return next();
 
   if (!settings.siteEnabled) {
+    // Attempt to decode the user's role from the token to allow superadmins to bypass lockdown
+    let isSuperAdmin = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      try {
+        const jwt = require("jsonwebtoken");
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+        const User = require("../models/User.model");
+        const user = await User.findById(decoded.sub);
+        if (user && user.role === "superadmin") {
+          isSuperAdmin = true;
+        }
+      } catch (err) {
+        // Silently ignore token errors; they will be caught by actual auth guards later
+      }
+    }
+
+    if (isSuperAdmin) {
+      return next();
+    }
+
     throw new ApiError(
       503,
       settings.maintenanceMessage ||

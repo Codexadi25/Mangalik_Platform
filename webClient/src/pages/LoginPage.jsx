@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Container, Box, Typography, Button, TextField, Divider, Tabs, Tab } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
@@ -24,6 +24,14 @@ import { firebaseLoginThunk, localLoginThunk, localRegisterThunk } from "../redu
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((s) => s.auth.user);
+  
+  useEffect(() => {
+    if (user) {
+      navigate("/account");
+    }
+  }, [user, navigate]);
+
   const [tab, setTab] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
