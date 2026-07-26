@@ -1,0 +1,17 @@
+<select id="role-switcher-select" style="padding: 8px; border-radius: 12px; border: 1px solid #ccc; background: #fff; margin-top: 16px;">
+<% roles.forEach(function(role) { %>
+  <option value="<%= role.value %>"><%= role.label %></option>
+<% }); %>
+</select>
+<script>
+  // Self-executing script injected via EJS to handle changes
+  (function() {
+    var select = document.getElementById("role-switcher-select");
+    if(select) {
+      select.addEventListener("change", function(e) {
+        // Dispatch a custom event to notify React
+        window.dispatchEvent(new CustomEvent("ROLE_SWITCHED", { detail: e.target.value }));
+      });
+    }
+  })();
+</script>

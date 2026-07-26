@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Security & Attack Logs</h2>
+</div>
+
+<div class="glass-card">
+    <table>
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Attack Type</th>
+                <th>Timestamp</th>
+                <th>Action Taken</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% attacks.forEach(attack => { %>
+                <tr>
+                    <td style="font-family: monospace; color: var(--accent);"><%= attack.ip %></td>
+                    <td><%= attack.type %></td>
+                    <td style="color: var(--text-muted); font-size: 0.875rem;"><%= attack.timestamp %></td>
+                    <td><span class="badge badge-success">Blocked</span></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('partials/footer') %>

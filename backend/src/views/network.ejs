@@ -1,0 +1,234 @@
+<%- include('partials/header') %>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Live Network Monitor</h2>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <select id="timeRange" onchange="handleRangeChange()" style="padding: 0.5rem; border-radius: 4px; background: var(--bg-dark); color: #fff; border: 1px solid rgba(255,255,255,0.1);">
+            <option value="live">Live (Last 60s)</option>
+            <option value="1h">Last 1 Hour</option>
+            <option value="1w">Weekly</option>
+            <option value="1m">Past Month</option>
+            <option value="3m">3 Months</option>
+            <option value="6m">6 Months</option>
+            <option value="1y">Last 1 Year</option>
+            <option value="all">From the Starting</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid grid-4" style="margin-bottom: 2rem;">
+    <div class="glass-card" style="display: flex; flex-direction: column; align-items: center;">
+        <div style="color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Current Req/s</div>
+        <div id="current-reqs" style="font-size: 3rem; font-weight: 700; color: #10b981;">0</div>
+    </div>
+    <div class="glass-card" style="display: flex; flex-direction: column; align-items: center;">
+        <div style="color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Avg Latency</div>
+        <div id="current-latency" style="font-size: 3rem; font-weight: 700; color: #3b82f6;">0 ms</div>
+    </div>
+    <div class="glass-card" style="display: flex; flex-direction: column; align-items: center;">
+        <div style="color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Peak Usage</div>
+        <div id="peak-usage" style="font-size: 3rem; font-weight: 700; color: #f59e0b;">0</div>
+    </div>
+    <div class="glass-card" style="display: flex; flex-direction: column; align-items: center;">
+        <div style="color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Lowest Usage</div>
+        <div id="low-usage" style="font-size: 3rem; font-weight: 700; color: #64748b;">0</div>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1rem;">Requests per Second</h3>
+    <div style="width: 100%; height: 350px;">
+        <canvas id="reqChart"></canvas>
+    </div>
+</div>
+
+<div class="glass-card">
+    <h3 style="margin-bottom: 1rem;">Latency & Errors</h3>
+    <div style="width: 100%; height: 250px;">
+        <canvas id="latChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const reqCtx = document.getElementById('reqChart').getContext('2d');
+    const latCtx = document.getElementById('latChart').getContext('2d');
+
+    const reqChart = new Chart(reqCtx, {
+        type: 'line',
+        data: {
+            labels: Array(60).fill(''), // 60 seconds
+            datasets: [
+                { 
+                    label: 'Requests / sec', 
+                    borderColor: '#1788c3', 
+                    backgroundColor: 'rgba(23, 136, 195, 0.2)', 
+                    data: Array(60).fill(0), 
+                    tension: 0, 
+                    fill: true,
+                    borderWidth: 1.5,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            animation: false, 
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    suggestedMax: 10,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: true },
+                    ticks: { maxTicksLimit: 5, color: '#888' }
+                },
+                x: { 
+                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: true },
+                    ticks: { maxTicksLimit: 10, color: '#888', maxRotation: 0 }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    const latChart = new Chart(latCtx, {
+        type: 'bar',
+        data: {
+            labels: Array(60).fill(''),
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Avg Latency (ms)',
+                    borderColor: '#8e44ad',
+                    backgroundColor: 'rgba(142, 68, 173, 0.2)',
+                    data: Array(60).fill(0),
+                    tension: 0,
+                    fill: true,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'bar',
+                    label: 'Errors',
+                    backgroundColor: '#ef4444',
+                    data: Array(60).fill(0),
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            animation: false,
+            scales: { 
+                x: { 
+                    stacked: true, 
+                    grid: { color: 'rgba(255, 255, 255, 0.1)', drawBorder: true },
+                    ticks: { maxTicksLimit: 10, color: '#888', maxRotation: 0 }
+                },
+                y: { 
+                    type: 'linear', 
+                    display: true, 
+                    position: 'left', 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#888' }
+                },
+                y1: { 
+                    type: 'linear', 
+                    display: true, 
+                    position: 'right', 
+                    beginAtZero: true, 
+                    suggestedMax: 5, 
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: '#ef4444' }
+                }
+            }
+        }
+    });
+
+    let pollInterval = null;
+    let currentRange = 'live';
+
+    function handleRangeChange() {
+        currentRange = document.getElementById('timeRange').value;
+        if (currentRange === 'live') {
+            startPolling();
+        } else {
+            stopPolling();
+            fetchNetworkMetrics(); // fetch once for historical
+        }
+    }
+
+    async function fetchNetworkMetrics() {
+        try {
+            const res = await fetch(`/admin/network-metrics?range=${currentRange}`);
+            const data = await res.json();
+            
+            const history = data.history;
+            if (!history || history.length === 0) return;
+
+            const labels = history.map(d => d.time);
+            const reqs = history.map(d => d.reqs);
+            const lats = history.map(d => d.avgLatency);
+            const errs = history.map(d => d.errorCount || 0);
+
+            // Update DOM headers with latest/average stats
+            const latest = history[history.length - 1];
+            document.getElementById('current-reqs').innerText = latest.reqs;
+            document.getElementById('current-latency').innerText = latest.avgLatency + ' ms';
+            document.getElementById('peak-usage').innerText = data.peakUsage;
+            document.getElementById('low-usage').innerText = data.lowUsage;
+
+            // Update chart data
+            if (data.isHistorical) {
+                // Do not pad arrays, show the exact data points for historical ranges
+                reqChart.data.labels = labels;
+                reqChart.data.datasets[0].data = reqs;
+                
+                latChart.data.labels = labels;
+                latChart.data.datasets[0].data = lats;
+                latChart.data.datasets[1].data = errs;
+            } else {
+                // Pad arrays if history has < 60 items for live view
+                while (labels.length < 60) {
+                    labels.unshift('');
+                    reqs.unshift(0);
+                    lats.unshift(0);
+                    errs.unshift(0);
+                }
+                reqChart.data.labels = labels;
+                reqChart.data.datasets[0].data = reqs;
+                
+                latChart.data.labels = labels;
+                latChart.data.datasets[0].data = lats;
+                latChart.data.datasets[1].data = errs;
+            }
+
+            reqChart.update();
+            latChart.update();
+            
+        } catch (err) {
+            console.error('Failed to fetch network metrics', err);
+        }
+    }
+
+    function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        fetchNetworkMetrics();
+        pollInterval = setInterval(fetchNetworkMetrics, 1000);
+    }
+
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    // Start
+    startPolling();
+</script>
+
+<%- include('partials/footer') %>

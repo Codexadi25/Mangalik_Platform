@@ -1,0 +1,32 @@
+<%- include('partials/header') %>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Server Logs</h2>
+</div>
+
+<div class="glass-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Level</th>
+                <th>Message</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% logs.forEach(log => { %>
+                <tr>
+                    <td>
+                        <span class="badge <%= log.level === 'INFO' ? 'badge-info' : log.level === 'WARN' ? 'badge-warn' : 'badge-error' %>">
+                            <%= log.level %>
+                        </span>
+                    </td>
+                    <td><%= log.message %></td>
+                    <td style="color: var(--text-muted); font-size: 0.875rem;"><%= log.timestamp %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('partials/footer') %>
