@@ -11,16 +11,16 @@ export default defineConfig(({ command }) => ({
     command === 'build' && viteObfuscateFile({
       options: {
         compact: true,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 0.75,
-        deadCodeInjection: true,
-        deadCodeInjectionThreshold: 0.4,
+        controlFlowFlattening: false,
+        controlFlowFlatteningThreshold: 0.0,
+        deadCodeInjection: false,
+        deadCodeInjectionThreshold: 0.0,
         debugProtection: false,
         debugProtectionInterval: 0,
         disableConsoleOutput: true,
         identifierNamesGenerator: "hexadecimal",
         log: false,
-        numbersToExpressions: true,
+        numbersToExpressions: false,
         renameGlobals: false,
         selfDefending: true,
         simplify: true,
@@ -46,6 +46,8 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: "dist",
     sourcemap: false,
+    cssCodeSplit: true,
+    minify: "esbuild",
     chunkSizeWarningLimit: 1000,
   },
 }));

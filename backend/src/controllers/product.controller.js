@@ -135,6 +135,7 @@ const serveProductImage = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Image not found.");
   }
   res.set("Content-Type", media.contentType);
+  res.set("Cache-Control", "public, max-age=31536000, immutable");
   res.send(media.data);
 });
 
