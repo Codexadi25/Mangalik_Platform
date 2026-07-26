@@ -3,6 +3,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   createUserWithEmailAndPassword,
@@ -31,6 +33,8 @@ export const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 export const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const loginWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
+export const getGoogleRedirectResult = () => getRedirectResult(auth);
 
 export const signupWithEmail = (email, password) =>
   createUserWithEmailAndPassword(auth, email, password);

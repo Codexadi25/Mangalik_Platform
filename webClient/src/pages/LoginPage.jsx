@@ -7,6 +7,8 @@ import "./LoginPage.css";
 
 import {
   loginWithGoogle,
+  loginWithGoogleRedirect,
+  getGoogleRedirectResult,
   setupRecaptcha,
   loginWithPhone,
 } from "../services/firebase";
@@ -32,6 +34,25 @@ const LoginPage = () => {
   useEffect(() => {
     if (user) navigate(returnUrl, { replace: true });
   }, [user, navigate, returnUrl]);
+
+  const isMobileOrTablet = () => {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    return /android|ipad|iphone|ipod/i.test(userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+  };
+
+  useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        const result = await getGoogleRedirectResult();
+        if (result && result.user) {
+          await completeLogin(result.user);
+        }
+      } catch (err) {
+        toast.error("Google sign-in failed.");
+      }
+    };
+    checkRedirect();
+  }, []);
 
   // Auth Modes
   const [isLogin, setIsLogin] = useState(location.pathname !== "/signup");
@@ -72,8 +93,12 @@ const LoginPage = () => {
 
   const handleGoogle = async () => {
     try {
-      const result = await loginWithGoogle();
-      await completeLogin(result.user);
+      if (isMobileOrTablet()) {
+        await loginWithGoogleRedirect();
+      } else {
+        const result = await loginWithGoogle();
+        await completeLogin(result.user);
+      }
     } catch (err) {
       toast.error("Google sign-in failed.");
     }
