@@ -7,6 +7,36 @@ const router = express.Router();
 // Only admin and superadmin can manage server defender
 router.use(protect, authorize("admin", "superadmin"));
 
+router.get("/attack-logs", async (req, res) => {
+  const fs = require("fs");
+  const path = require("path");
+  let attacks = [];
+  try {
+    const logPath = path.join(__dirname, "../../logs/combined.log");
+    if (fs.existsSync(logPath)) {
+      const lines = fs.readFileSync(logPath, "utf8").trim().split("\n").filter(Boolean);
+      const suspicious = lines.filter(l => l.includes("429") || l.includes("403") || l.includes("401") || l.includes("Unauthorized") || l.includes("RateLimit")).slice(-50);
+      attacks = suspicious.reverse().map(line => {
+        const ipMatch = line.match(/\d+\.\d+\.\d+\.\d+/);
+        let timestamp = new Date().toISOString();
+        try {
+          const parsed = JSON.parse(line);
+          if (parsed.timestamp) timestamp = parsed.timestamp;
+        } catch {}
+        return {
+          ip: ipMatch ? ipMatch[0] : "Unknown IP",
+          type: "Suspicious Activity / Rate Limit",
+          timestamp,
+          action: "Blocked"
+        };
+      });
+    }
+  } catch (err) {
+    console.error("Failed to fetch attack logs:", err);
+  }
+  res.status(200).json({ success: true, data: attacks });
+});
+
 /**
  * GET /api/defender
  * Query params: q (search by IP, MAC, or email)

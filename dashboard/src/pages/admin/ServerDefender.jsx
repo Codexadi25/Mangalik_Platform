@@ -16,12 +16,23 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Stack
+  Stack,
+  Divider
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import GppBadIcon from "@mui/icons-material/GppBad";
 import GppGoodIcon from "@mui/icons-material/GppGood";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import SecurityIcon from "@mui/icons-material/Security";
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from "recharts";
 import api from "../../services/api";
 import { toast } from "react-toastify";
 import { useHeader } from "../../context/HeaderContext";
@@ -29,14 +40,19 @@ import { useHeader } from "../../context/HeaderContext";
 const ServerDefender = () => {
   const { setHeaderData } = useHeader();
   const [records, setRecords] = useState([]);
+  const [attackLogs, setAttackLogs] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/defender", { params: { q: search } });
-      setRecords(data.data || []);
+      const [resDefender, resAttacks] = await Promise.all([
+        api.get("/defender", { params: { q: search } }),
+        api.get("/defender/attack-logs")
+      ]);
+      setRecords(resDefender.data.data || []);
+      setAttackLogs(resAttacks.data.data || []);
     } catch (err) {
       toast.error("Failed to load security records.");
     } finally {
@@ -78,45 +94,81 @@ const ServerDefender = () => {
   const whitelistedCount = records.filter(r => r.status === "whitelisted").length;
   const graceCount = records.filter(r => r.status === "grace").length;
 
+  // Chart data formatting
+  const getChartData = () => {
+    const countsByTime = {};
+    
+    // Sort all timestamps to display a chronological line
+    attackLogs
+      .filter(log => log.timestamp && log.ip !== "-")
+      .forEach(log => {
+        const date = new Date(log.timestamp);
+        // Format as HH:MM
+        const timeStr = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+        countsByTime[timeStr] = (countsByTime[timeStr] || 0) + 1;
+      });
+
+    const formattedData = Object.keys(countsByTime)
+      .sort()
+      .map(time => ({ time, incidents: countsByTime[time] }));
+
+    if (formattedData.length === 0) {
+      return [
+        { time: "00:00", incidents: 0 },
+        { time: "06:00", incidents: 0 },
+        { time: "12:00", incidents: 0 },
+        { time: "18:00", incidents: 0 },
+        { time: "24:00", incidents: 0 }
+      ];
+    }
+    
+    // Pad chart data if too few points for aesthetic graph line
+    if (formattedData.length === 1) {
+      return [{ time: "Start", incidents: 0 }, ...formattedData, { time: "End", incidents: 0 }];
+    }
+
+    return formattedData;
+  };
+
   return (
     <Box sx={{ p: 1 }}>
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: "5px solid #d32f2f", bgcolor: "background.paper" }}>
+          <Card sx={{ borderLeft: "5px solid #d32f2f", bgcolor: "background.paper", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
             <CardContent>
               <Stack direction="row" spacing={2} alignItems="center">
                 <GppBadIcon sx={{ fontSize: 40, color: "error.main" }} />
                 <Box>
                   <Typography color="text.secondary" variant="body2">Blocked Clients</Typography>
-                  <Typography variant="h4" fontWeight={700}>{blockedCount}</Typography>
+                  <Typography variant="h4" fontWeight={800}>{blockedCount}</Typography>
                 </Box>
               </Stack>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: "5px solid #2e7d32", bgcolor: "background.paper" }}>
+          <Card sx={{ borderLeft: "5px solid #2e7d32", bgcolor: "background.paper", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
             <CardContent>
               <Stack direction="row" spacing={2} alignItems="center">
                 <GppGoodIcon sx={{ fontSize: 40, color: "success.main" }} />
                 <Box>
                   <Typography color="text.secondary" variant="body2">Whitelisted Clients</Typography>
-                  <Typography variant="h4" fontWeight={700}>{whitelistedCount}</Typography>
+                  <Typography variant="h4" fontWeight={800}>{whitelistedCount}</Typography>
                 </Box>
               </Stack>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ borderLeft: "5px solid #ed6c02", bgcolor: "background.paper" }}>
+          <Card sx={{ borderLeft: "5px solid #ed6c02", bgcolor: "background.paper", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
             <CardContent>
               <Stack direction="row" spacing={2} alignItems="center">
                 <AccessTimeIcon sx={{ fontSize: 40, color: "warning.main" }} />
                 <Box>
                   <Typography color="text.secondary" variant="body2">Active Grace Cooldowns</Typography>
-                  <Typography variant="h4" fontWeight={700}>{graceCount}</Typography>
+                  <Typography variant="h4" fontWeight={800}>{graceCount}</Typography>
                 </Box>
               </Stack>
             </CardContent>
@@ -124,119 +176,223 @@ const ServerDefender = () => {
         </Grid>
       </Grid>
 
-      {/* Records Table */}
-      <TableContainer component={Paper} elevation={1}>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Client IP & MAC</TableCell>
-                <TableCell>Connected Accounts</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Violations</TableCell>
-                <TableCell>Grace Count</TableCell>
-                <TableCell>Cooldown Ends</TableCell>
-                <TableCell>Reason</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {records.length === 0 ? (
+      {/* Incident Chart Section */}
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.05)" }}>
+        <Box display="flex" alignItems="center" gap={1} mb={2.5}>
+          <SecurityIcon color="primary" sx={{ fontSize: 24 }} />
+          <Typography variant="h6" fontWeight={800} color="text.primary">
+            Security Incident Trend (Requests Blocked / Suspicious Logs)
+          </Typography>
+        </Box>
+        <Box sx={{ width: "100%", height: 260 }}>
+          <ResponsiveContainer>
+            <AreaChart data={getChartData()} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#d32f2f" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#d32f2f" stopOpacity={0.0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.06)" />
+              <XAxis dataKey="time" stroke="#64748b" style={{ fontSize: "0.75rem", fontWeight: 600 }} />
+              <YAxis stroke="#64748b" style={{ fontSize: "0.75rem", fontWeight: 600 }} allowDecimals={false} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: "8px", 
+                  border: "1px solid rgba(0,0,0,0.08)", 
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)" 
+                }} 
+              />
+              <Area type="monotone" dataKey="incidents" name="Incidents" stroke="#d32f2f" strokeWidth={3} fillOpacity={1} fill="url(#colorIncidents)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Box>
+      </Paper>
+
+      {/* Active Rules / Defender Records Table */}
+      <Paper sx={{ mb: 4, borderRadius: 3, overflow: "hidden", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+        <Box sx={{ p: 2.5, bg: "background.paper" }}>
+          <Typography variant="subtitle1" fontWeight={800} color="text.primary">
+            Active Blocked / Whitelisted Devices
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            IP and MAC records dynamically generated from system rate-limiting rules.
+          </Typography>
+        </Box>
+        <Divider />
+        <TableContainer>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Table>
+              <TableHead sx={{ bgcolor: "rgba(0,0,0,0.01)" }}>
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 3, color: "text.secondary" }}>
-                    No security violations or defender records found.
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Client IP & MAC</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Connected Accounts</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Violations</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Grace Count</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Cooldown Ends</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Reason</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>Actions</TableCell>
                 </TableRow>
-              ) : (
-                records.map((row) => (
-                  <TableRow key={row._id} hover>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight={600}>{row.ip}</Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        MAC: {row.deviceMac}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      {row.connectedAccounts && row.connectedAccounts.length > 0 ? (
-                        row.connectedAccounts.map((acc, index) => (
-                          <Chip key={index} label={acc} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
-                        ))
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">None</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={row.status.toUpperCase()}
-                        size="small"
-                        color={
-                          row.status === "blocked"
-                            ? "error"
-                            : row.status === "whitelisted"
-                            ? "success"
-                            : row.status === "grace"
-                            ? "warning"
-                            : "default"
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>{row.violationsCount}</TableCell>
-                    <TableCell>{row.graceIncrements} / 3</TableCell>
-                    <TableCell>
-                      {row.graceUntil ? (
-                        new Date(row.graceUntil).toLocaleTimeString()
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">-</Typography>
-                      )}
-                    </TableCell>
-                    <TableCell sx={{ maxWidth: 180 }}>
-                      <Typography variant="caption" noWrap>{row.reason || "N/A"}</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        {row.status !== "whitelisted" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="success"
-                            onClick={() => handleUpdateStatus(row._id, "whitelisted")}
-                          >
-                            Whitelist
-                          </Button>
-                        )}
-                        {row.status !== "blocked" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="error"
-                            onClick={() => handleUpdateStatus(row._id, "blocked")}
-                          >
-                            Block
-                          </Button>
-                        )}
-                        {(row.status === "blocked" || row.status === "whitelisted" || row.status === "grace") && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="primary"
-                            onClick={() => handleUpdateStatus(row._id, "active")}
-                          >
-                            Reset
-                          </Button>
-                        )}
-                      </Stack>
+              </TableHead>
+              <TableBody>
+                {records.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                      No active security records or rule deviations found.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        )}
-      </TableContainer>
+                ) : (
+                  records.map((row) => (
+                    <TableRow key={row._id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>{row.ip}</Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          MAC: {row.deviceMac}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {row.connectedAccounts && row.connectedAccounts.length > 0 ? (
+                          row.connectedAccounts.map((acc, index) => (
+                            <Chip key={index} label={acc} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
+                          ))
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">None</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={row.status.toUpperCase()}
+                          size="small"
+                          color={
+                            row.status === "blocked"
+                              ? "error"
+                              : row.status === "whitelisted"
+                              ? "success"
+                              : row.status === "grace"
+                              ? "warning"
+                              : "default"
+                          }
+                          sx={{ fontWeight: 700, fontSize: "0.7rem" }}
+                        />
+                      </TableCell>
+                      <TableCell>{row.violationsCount}</TableCell>
+                      <TableCell>{row.graceIncrements} / 3</TableCell>
+                      <TableCell>
+                        {row.graceUntil ? (
+                          new Date(row.graceUntil).toLocaleTimeString()
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">-</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 180 }}>
+                        <Typography variant="caption" noWrap>{row.reason || "N/A"}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          {row.status !== "whitelisted" && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="success"
+                              onClick={() => handleUpdateStatus(row._id, "whitelisted")}
+                            >
+                              Whitelist
+                            </Button>
+                          )}
+                          {row.status !== "blocked" && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              onClick={() => handleUpdateStatus(row._id, "blocked")}
+                            >
+                              Block
+                            </Button>
+                          )}
+                          {(row.status === "blocked" || row.status === "whitelisted" || row.status === "grace") && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="primary"
+                              onClick={() => handleUpdateStatus(row._id, "active")}
+                            >
+                              Reset
+                            </Button>
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </TableContainer>
+      </Paper>
+
+      {/* Security & Attack Logs Section */}
+      <Paper sx={{ borderRadius: 3, overflow: "hidden", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+        <Box sx={{ p: 2.5 }}>
+          <Typography variant="subtitle1" fontWeight={800} color="text.primary">
+            Security & Attack Logs
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Log parsed incidents from combined.log files detailing suspicious requests.
+          </Typography>
+        </Box>
+        <Divider />
+        <TableContainer>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Table>
+              <TableHead sx={{ bgcolor: "rgba(0,0,0,0.01)" }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700 }}>IP Address</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Attack Type</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Timestamp</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Action Taken</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {attackLogs.length === 0 || attackLogs[0]?.ip === "-" ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                      No attacks or suspicious activity logged recently.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  attackLogs.map((log, index) => (
+                    <TableRow key={index} hover>
+                      <TableCell sx={{ fontWeight: 600, color: "primary.dark" }}>
+                        {log.ip}
+                      </TableCell>
+                      <TableCell>{log.type}</TableCell>
+                      <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={log.action} 
+                          color="error" 
+                          size="small" 
+                          sx={{ fontWeight: 700, fontSize: "0.7rem" }} 
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </TableContainer>
+      </Paper>
+
     </Box>
   );
 };
