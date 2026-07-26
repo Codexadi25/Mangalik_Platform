@@ -56,8 +56,8 @@ const Settings = () => {
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.warning("Logo image exceeds 2MB limit.");
+    if (file.size > 12 * 1024 * 1024) {
+      toast.warning("Logo image exceeds 12MB limit.");
       return;
     }
     setIsUploadingLogo(true);
@@ -312,7 +312,7 @@ const Settings = () => {
                       Update Brand Logo
                     </Typography>
                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
-                      Supported formats: PNG, JPG (Max 2MB). Transparent background recommended.
+                      Supported formats: PNG, JPG (Max 12MB). Transparent background recommended.
                     </Typography>
                     <Button
                       variant="contained"

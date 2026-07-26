@@ -15,7 +15,7 @@ const { cacheRoute } = require("../middleware/cache.middleware");
 const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB limit
 });
 
 router.get("/", optionalProtect, getProducts);
