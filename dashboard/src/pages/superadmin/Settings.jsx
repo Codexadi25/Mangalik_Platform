@@ -181,94 +181,181 @@ const Settings = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box display="flex" alignItems="center" mb={3}>
-        <LockIcon color="primary" sx={{ mr: 1, fontSize: 32 }} />
-        <Typography variant="h4" fontWeight={800}>
-          Platform Settings
-        </Typography>
+      <Box display="flex" alignItems="center" mb={4}>
+        <Box 
+          sx={{ 
+            p: 1, 
+            borderRadius: 3, 
+            background: "linear-gradient(135deg, #FF6F1E 0%, #FF9A44 100%)", 
+            boxShadow: "0 4px 12px rgba(255, 111, 30, 0.2)",
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            mr: 2
+          }}
+        >
+          <LockIcon sx={{ color: "#fff", fontSize: 28 }} />
+        </Box>
+        <Box>
+          <Typography variant="h4" fontWeight={900} color="#334155" sx={{ letterSpacing: "-0.5px" }}>
+            Platform Settings
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Configure your storefront metadata, delivery variables, and governance agreements.
+          </Typography>
+        </Box>
       </Box>
 
       <Grid container spacing={4}>
         {/* Left Side: General Profile Settings */}
         <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 4, borderRadius: 3, mb: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
-            <Typography variant="h6" fontWeight={700} gutterBottom>Business Profile</Typography>
-            <Divider sx={{ mb: 3 }} />
+          {/* Business Profile */}
+          <Paper 
+            sx={{ 
+              p: 4, 
+              borderRadius: 4, 
+              mb: 4, 
+              border: "1px solid rgba(255, 111, 30, 0.08)", 
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.02)",
+              background: "#fff"
+            }}
+          >
+            <Typography variant="h6" fontWeight={800} color="#7C2D12" sx={{ mb: 0.5 }}>
+              Business Profile
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+              Your brand identity displayed across search engines and customer invoices.
+            </Typography>
+            <Divider sx={{ mb: 3, borderColor: "rgba(255, 111, 30, 0.1)" }} />
             
-            <Grid container spacing={2}>
+            <Grid container spacing={2.5}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Business Name"
                   value={settings.businessName || ""}
                   onChange={(e) => setSettings({ ...settings, businessName: e.target.value })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <TextField
-                    fullWidth
-                    label="Logo URL"
-                    value={settings.logoUrl || ""}
-                    onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                    margin="dense"
-                    size="small"
-                  />
-                  <Button
-                    variant="contained"
-                    component="label"
-                    size="small"
-                    disabled={isUploadingLogo}
-                    sx={{ minWidth: "120px", mt: 0.5 }}
-                  >
-                    {isUploadingLogo ? "Uploading..." : "Upload Logo"}
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                    />
-                  </Button>
-                </Box>
-              </Grid>
+              
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Support Email"
                   value={settings.supportEmail || ""}
                   onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
               </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Support Phone"
                   value={settings.supportPhone || ""}
                   onChange={(e) => setSettings({ ...settings, supportPhone: e.target.value })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Logo URL"
+                  value={settings.logoUrl || ""}
+                  onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+
+              {/* Logo Preview & Uploader Row */}
+              <Grid item xs={12}>
+                <Box 
+                  sx={{ 
+                    p: 2, 
+                    borderRadius: 3, 
+                    background: "linear-gradient(135deg, #FFF7ED 0%, #FFF1F2 100%)",
+                    border: "1.5px dashed rgba(255, 111, 30, 0.2)",
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 3 
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      width: 64, 
+                      height: 64, 
+                      borderRadius: "50%", 
+                      overflow: "hidden", 
+                      bgcolor: "#fff", 
+                      boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center",
+                      border: "2px solid #fff"
+                    }}
+                  >
+                    <img 
+                      src={settings.logoUrl || "/Mangalik.png"} 
+                      alt="Logo Preview" 
+                      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                      onError={(e) => { e.target.src = "/Mangalik.png"; }}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" fontWeight={700} color="#7C2D12" gutterBottom>
+                      Update Brand Logo
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
+                      Supported formats: PNG, JPG (Max 2MB). Transparent background recommended.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      component="label"
+                      size="small"
+                      disabled={isUploadingLogo}
+                      sx={{ 
+                        textTransform: "none",
+                        fontWeight: 700,
+                        px: 3,
+                        py: 0.75,
+                        borderRadius: 2,
+                        background: "linear-gradient(90deg, #FF6F1E 0%, #FF9A44 100%)", 
+                        boxShadow: "0 4px 10px rgba(255, 111, 30, 0.2)",
+                        "&:hover": { background: "linear-gradient(90deg, #E35205 0%, #FF8C00 100%)" }
+                      }}
+                    >
+                      {isUploadingLogo ? "Uploading..." : "Upload Logo"}
+                      <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
+                    </Button>
+                  </Box>
+                </Box>
               </Grid>
             </Grid>
 
             {/* Distance-Based Delivery Settings Section */}
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ mt: 4 }}>
+            <Typography variant="h6" fontWeight={800} color="#7C2D12" sx={{ mt: 5, mb: 0.5 }}>
               Distance-Based Delivery Settings
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+              Control real-time logistical costs based on GPS drop proximity.
+            </Typography>
+            <Divider sx={{ mb: 3, borderColor: "rgba(255, 111, 30, 0.1)" }} />
+            
+            <Grid container spacing={2.5}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Business Location (Google Maps Link)"
                   value={settings.businessLocation || ""}
                   onChange={(e) => setSettings({ ...settings, businessLocation: e.target.value })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -278,8 +365,8 @@ const Settings = () => {
                   label="Base Delivery Charge (₹)"
                   value={settings.baseDeliveryCharge || 0}
                   onChange={(e) => setSettings({ ...settings, baseDeliveryCharge: Number(e.target.value) })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -289,8 +376,8 @@ const Settings = () => {
                   label="Base Distance Limit (km)"
                   value={settings.baseDeliveryDistanceLimit || 0}
                   onChange={(e) => setSettings({ ...settings, baseDeliveryDistanceLimit: Number(e.target.value) })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -300,55 +387,106 @@ const Settings = () => {
                   label="Delivery Charge / Km (₹)"
                   value={settings.deliveryChargePerKm || 0}
                   onChange={(e) => setSettings({ ...settings, deliveryChargePerKm: Number(e.target.value) })}
-                  margin="dense"
                   size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
               </Grid>
             </Grid>
           </Paper>
 
           {/* Other Plan Options Section */}
-          <Paper sx={{ p: 4, borderRadius: 3, mb: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
-            <Typography variant="h6" fontWeight={700} gutterBottom>Other Available Plan Options</Typography>
-            <Divider sx={{ mb: 3 }} />
+          <Paper 
+            sx={{ 
+              p: 4, 
+              borderRadius: 4, 
+              mb: 4, 
+              border: "1px solid rgba(255, 111, 30, 0.08)", 
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.02)",
+              background: "#fff"
+            }}
+          >
+            <Typography variant="h6" fontWeight={800} color="#7C2D12" sx={{ mb: 0.5 }}>
+              Other Available Plan Options
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+              Explore alternative professional tiers to scale platform services.
+            </Typography>
+            <Divider sx={{ mb: 3, borderColor: "rgba(255, 111, 30, 0.1)" }} />
             
-            <Grid container spacing={2}>
+            <Grid container spacing={3}>
               {/* Starter Option */}
               <Grid item xs={12} sm={6}>
-                <Card variant="outlined" sx={{ height: "100%", borderRadius: 2 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" fontWeight={700} color="text.secondary">Starter Plan</Typography>
-                    <Typography variant="h5" fontWeight={800} color="primary" sx={{ my: 1 }}>₹14,376 <Typography variant="caption" color="text.secondary">/ project</Typography></Typography>
-                    <Typography variant="body2" color="text.secondary" paragraph>Perfect for small businesses and startups.</Typography>
-                    <Divider sx={{ my: 1.5 }} />
-                    <Typography variant="caption" fontWeight={700} display="block" sx={{ mb: 0.5 }}>FEATURES INCLUDE:</Typography>
-                    <Typography variant="caption" color="text.secondary" component="div">
-                      • Responsive Web Application<br />
-                      • Modern UI/UX Design<br />
-                      • Basic SEO Optimization<br />
-                      • Mobile-First Approach<br />
-                      • 30 Days Support
+                <Card 
+                  variant="outlined" 
+                  sx={{ 
+                    height: "100%", 
+                    borderRadius: 3,
+                    borderColor: "rgba(255, 111, 30, 0.12)",
+                    transition: "all 0.2s",
+                    "&:hover": { boxShadow: "0 6px 15px rgba(255,111,30,0.05)", transform: "translateY(-1px)" }
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    <Typography variant="subtitle2" fontWeight={800} color="text.secondary" sx={{ textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Starter Plan
                     </Typography>
+                    <Typography variant="h4" fontWeight={900} color="#C2410C" sx={{ my: 1.5 }}>
+                      ₹14,376 <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.8rem" }}>/ project</Typography>
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ minHeight: 40, lineHeight: 1.5 }}>
+                      Perfect for small businesses and storefront startups looking to go online quickly.
+                    </Typography>
+                    <Divider sx={{ my: 2, borderColor: "#fed7aa" }} />
+                    <Typography variant="caption" fontWeight={800} color="#7C2D12" display="block" sx={{ mb: 1, letterSpacing: "0.5px" }}>
+                      FEATURES INCLUDE:
+                    </Typography>
+                    <Stack spacing={0.75}>
+                      {["Responsive Web Application", "Modern UI/UX Design", "Basic SEO Optimization", "Mobile-First Approach", "30 Days Support"].map((feat, i) => (
+                        <Box key={i} display="flex" alignItems="center" gap={1}>
+                          <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#FF6F1E" }} />
+                          <Typography variant="caption" color="text.secondary">{feat}</Typography>
+                        </Box>
+                      ))}
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
 
               {/* Enterprise Option */}
               <Grid item xs={12} sm={6}>
-                <Card variant="outlined" sx={{ height: "100%", borderRadius: 2 }}>
-                  <CardContent>
-                    <Typography variant="subtitle1" fontWeight={700} color="text.secondary">Enterprise Plan</Typography>
-                    <Typography variant="h5" fontWeight={800} color="primary" sx={{ my: 1 }}>₹1,99,999 <Typography variant="caption" color="text.secondary">/ project</Typography></Typography>
-                    <Typography variant="body2" color="text.secondary" paragraph>Comprehensive solution for large organizations.</Typography>
-                    <Divider sx={{ my: 1.5 }} />
-                    <Typography variant="caption" fontWeight={700} display="block" sx={{ mb: 0.5 }}>FEATURES INCLUDE:</Typography>
-                    <Typography variant="caption" color="text.secondary" component="div">
-                      • Enterprise-Grade Architecture<br />
-                      • Microservices Development<br />
-                      • AI/ML Integration<br />
-                      • Cloud Infrastructure Setup<br />
-                      • 1 Year Support & Maintenance
+                <Card 
+                  variant="outlined" 
+                  sx={{ 
+                    height: "100%", 
+                    borderRadius: 3,
+                    borderColor: "rgba(255, 111, 30, 0.12)",
+                    background: "linear-gradient(135deg, #FFF7ED 0%, #FFFbeb 100%)",
+                    transition: "all 0.2s",
+                    "&:hover": { boxShadow: "0 6px 15px rgba(255,111,30,0.05)", transform: "translateY(-1px)" }
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    <Typography variant="subtitle2" fontWeight={800} color="#C2410C" sx={{ textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Enterprise Plan
                     </Typography>
+                    <Typography variant="h4" fontWeight={900} color="#C2410C" sx={{ my: 1.5 }}>
+                      ₹1,99,999 <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.8rem" }}>/ project</Typography>
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ minHeight: 40, lineHeight: 1.5 }}>
+                      Comprehensive high-availability solutions for scaling organizations.
+                    </Typography>
+                    <Divider sx={{ my: 2, borderColor: "#fdba74" }} />
+                    <Typography variant="caption" fontWeight={800} color="#7C2D12" display="block" sx={{ mb: 1, letterSpacing: "0.5px" }}>
+                      FEATURES INCLUDE:
+                    </Typography>
+                    <Stack spacing={0.75}>
+                      {["Enterprise-Grade Architecture", "Microservices Development", "AI/ML Integration", "Cloud Infrastructure Setup", "1 Year Support & Maintenance"].map((feat, i) => (
+                        <Box key={i} display="flex" alignItems="center" gap={1}>
+                          <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#FF6F1E" }} />
+                          <Typography variant="caption" color="text.secondary">{feat}</Typography>
+                        </Box>
+                      ))}
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
@@ -356,23 +494,59 @@ const Settings = () => {
           </Paper>
 
           {/* Legal Governance Banner */}
-          <Paper sx={{ p: 4, borderRadius: 3, bgcolor: "rgba(239, 68, 68, 0.04)", border: "1px solid #ef4444", mb: 3 }}>
+          <Paper 
+            sx={{ 
+              p: 4, 
+              borderRadius: 4, 
+              bgcolor: "rgba(239, 68, 68, 0.02)", 
+              border: "1.5px solid rgba(239, 68, 68, 0.25)", 
+              mb: 4,
+              boxShadow: "0 8px 24px rgba(239,68,68,0.03)"
+            }}
+          >
             <Box display="flex" alignItems="center" mb={2}>
-              <ShieldIcon color="error" sx={{ mr: 1 }} />
-              <Typography variant="h6" color="error.dark" fontWeight={700}>Platform Governance & Supervision</Typography>
+              <Box sx={{ p: 0.75, borderRadius: 2, bgcolor: "rgba(239, 68, 68, 0.1)", display: "flex", mr: 1.5 }}>
+                <ShieldIcon color="error" sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="h6" color="#991B1B" fontWeight={800}>
+                Platform Governance & Supervision
+              </Typography>
             </Box>
-            <Typography variant="body2" color="text.primary" paragraph sx={{ lineHeight: 1.6 }}>
+            <Typography variant="body2" color="#7F1D1D" paragraph sx={{ lineHeight: 1.6, fontSize: "0.85rem" }}>
               The team has designed this platform under the governance, supervision, and guidance of <strong>Dhanlaxmi Enterprises</strong>. Every single feature and operational configuration is solely governed by them. As per Indian Company Laws and IT Laws, any forgery, security breach, data loss, or user data exploitation under any condition remains the responsibility of <strong>Dhanlaxmi Enterprises</strong>.
             </Typography>
             <FormControlLabel
               control={<Checkbox checked={agreed} onChange={(e) => setAgreed(e.target.checked)} color="error" />}
-              label="I acknowledge and agree to these terms of platform governance."
-              sx={{ mt: 1, color: "text.primary" }}
+              label={
+                <Typography variant="body2" fontWeight={700} color="#7F1D1D" sx={{ fontSize: "0.85rem" }}>
+                  I acknowledge and agree to these terms of platform governance.
+                </Typography>
+              }
+              sx={{ mt: 1 }}
             />
           </Paper>
 
           <Box display="flex" justifyContent="flex-end">
-            <Button variant="contained" color="primary" size="large" onClick={handleSave}>
+            <Button 
+              variant="contained" 
+              size="large" 
+              onClick={handleSave}
+              sx={{
+                py: 1.5,
+                px: 5,
+                fontWeight: 800,
+                borderRadius: 3,
+                textTransform: "none",
+                background: "linear-gradient(90deg, #FF6F1E 0%, #FF9A44 100%)", 
+                boxShadow: "0 4px 15px rgba(255, 111, 30, 0.35)",
+                transition: "all 0.2s",
+                "&:hover": { 
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 6px 20px rgba(255, 111, 30, 0.5)",
+                  background: "linear-gradient(90deg, #E35205 0%, #FF8C00 100%)"
+                }
+              }}
+            >
               Save Settings
             </Button>
           </Box>
@@ -380,21 +554,37 @@ const Settings = () => {
 
         {/* Right Side: Subscription Details & Features */}
         <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 4, borderRadius: 3, height: "100%", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+          <Paper 
+            sx={{ 
+              p: 4, 
+              borderRadius: 4, 
+              height: "100%", 
+              border: "1px solid rgba(255, 111, 30, 0.08)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.02)",
+              background: "#fff"
+            }}
+          >
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6" fontWeight={700}>Subscription Details</Typography>
-              <Chip label={settings.subscriptionStatus || "Active"} color="success" size="small" sx={{ fontWeight: 700 }} />
+              <Typography variant="h6" fontWeight={800} color="#7C2D12">
+                Subscription Details
+              </Typography>
+              <Chip 
+                label={settings.subscriptionStatus?.toUpperCase() || "ACTIVE"} 
+                color="success" 
+                size="small" 
+                sx={{ fontWeight: 800, fontSize: "0.75rem", borderRadius: 1.5 }} 
+              />
             </Box>
-            <Divider sx={{ mb: 3 }} />
+            <Divider sx={{ mb: 3, borderColor: "rgba(255, 111, 30, 0.1)" }} />
 
             {!isSuperAdmin && (
-              <Alert severity="info" sx={{ mb: 3 }}>
-                <AlertTitle>Read-Only Notice</AlertTitle>
+              <Alert severity="info" sx={{ mb: 3, borderRadius: 2.5 }}>
+                <AlertTitle sx={{ fontWeight: 700 }}>Read-Only Notice</AlertTitle>
                 Subscription properties can only be managed by the SuperAdmin.
               </Alert>
             )}
 
-            <Stack spacing={2} sx={{ mb: 4 }}>
+            <Stack spacing={2.5} sx={{ mb: 4 }}>
               <TextField
                 fullWidth
                 label="Subscription Plan"
@@ -402,6 +592,7 @@ const Settings = () => {
                 disabled={!isSuperAdmin}
                 onChange={(e) => setSettings({ ...settings, subscriptionPlan: e.target.value })}
                 size="small"
+                sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
               />
               <TextField
                 fullWidth
@@ -411,6 +602,7 @@ const Settings = () => {
                 onChange={(e) => setSettings({ ...settings, subscriptionCost: e.target.value })}
                 size="small"
                 type="number"
+                sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
               />
               <TextField
                 fullWidth
@@ -419,6 +611,7 @@ const Settings = () => {
                 disabled={!isSuperAdmin}
                 onChange={(e) => setSettings({ ...settings, subscriptionProvider: e.target.value })}
                 size="small"
+                sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
               />
               <TextField
                 fullWidth
@@ -427,23 +620,28 @@ const Settings = () => {
                 disabled={!isSuperAdmin}
                 onChange={(e) => setSettings({ ...settings, governedBy: e.target.value })}
                 size="small"
+                sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
               />
             </Stack>
 
-            <Typography variant="subtitle2" fontWeight={700} color="primary" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" fontWeight={800} color="#C2410C" sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}>
               ACTIVE PLAN FEATURES (Custom Professional Tier)
             </Typography>
-            <List dense disablePadding sx={{ mb: 3 }}>
+            <List dense disablePadding sx={{ mb: 4 }}>
               {profFeatures.map((f, idx) => (
-                <ListItem key={idx} disableGutters sx={{ py: 0.25 }}>
-                  <ListItemIcon sx={{ minWidth: 28 }}><CheckCircleIcon color="success" sx={{ fontSize: 16 }} /></ListItemIcon>
-                  <ListItemText primary={f} primaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary" }} />
+                <ListItem key={idx} disableGutters sx={{ py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 28 }}>
+                    <CheckCircleIcon color="success" sx={{ fontSize: 18 }} />
+                  </ListItemIcon>
+                  <ListItemText primary={f} primaryTypographyProps={{ fontSize: "0.85rem", color: "text.secondary", fontWeight: 500 }} />
                 </ListItem>
               ))}
               {profDeliverables.map((d, idx) => (
-                <ListItem key={`del-${idx}`} disableGutters sx={{ py: 0.25 }}>
-                  <ListItemIcon sx={{ minWidth: 28 }}><StarIcon color="warning" sx={{ fontSize: 16 }} /></ListItemIcon>
-                  <ListItemText primary={`Deliverable: ${d}`} primaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary" }} />
+                <ListItem key={`del-${idx}`} disableGutters sx={{ py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 28 }}>
+                    <StarIcon color="warning" sx={{ fontSize: 18 }} />
+                  </ListItemIcon>
+                  <ListItemText primary={`Deliverable: ${d}`} primaryTypographyProps={{ fontSize: "0.85rem", color: "text.secondary", fontWeight: 500 }} />
                 </ListItem>
               ))}
             </List>
@@ -451,32 +649,39 @@ const Settings = () => {
             {/* MOU Exception Box */}
             <Box 
               sx={{ 
-                p: 2, 
-                borderRadius: 2, 
-                border: "1.5px dashed #1976d2", 
-                bgcolor: "rgba(25, 118, 210, 0.03)" 
+                p: 3, 
+                borderRadius: 4, 
+                border: "2px dashed #1976d2", 
+                bgcolor: "rgba(25, 118, 210, 0.02)",
+                boxShadow: "0 4px 15px rgba(25, 118, 210, 0.02)"
               }}
             >
-              <Box display="flex" alignItems="center" mb={1}>
-                <HelpOutlineIcon color="primary" sx={{ mr: 0.75, fontSize: 18 }} />
-                <Typography variant="body2" fontWeight={700} color="primary.dark">
+              <Box display="flex" alignItems="center" mb={1.5}>
+                <Box sx={{ p: 0.5, borderRadius: 1.5, bgcolor: "rgba(25, 118, 210, 0.1)", display: "flex", mr: 1 }}>
+                  <HelpOutlineIcon color="primary" sx={{ fontSize: 18 }} />
+                </Box>
+                <Typography variant="body2" fontWeight={800} color="#1565C0">
                   MOU Additional Beta Program
                 </Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2, lineHeight: 1.5 }}>
                 Offered as a specialized exception under the Memorandum of Understanding (MOU) between Aditya Tech & Devoops and Dhanlaxmi Enterprises.
               </Typography>
               <List dense disablePadding>
                 {betaFeatures.map((f, idx) => (
-                  <ListItem key={`beta-${idx}`} disableGutters sx={{ py: 0.2 }}>
-                    <ListItemIcon sx={{ minWidth: 24 }}><CheckCircleIcon color="primary" sx={{ fontSize: 14 }} /></ListItemIcon>
-                    <ListItemText primary={f} primaryTypographyProps={{ fontSize: "0.75rem", color: "text.primary" }} />
+                  <ListItem key={`beta-${idx}`} disableGutters sx={{ py: 0.4 }}>
+                    <ListItemIcon sx={{ minWidth: 24 }}>
+                      <CheckCircleIcon color="primary" sx={{ fontSize: 15 }} />
+                    </ListItemIcon>
+                    <ListItemText primary={f} primaryTypographyProps={{ fontSize: "0.78rem", color: "text.primary", fontWeight: 500 }} />
                   </ListItem>
                 ))}
                 {betaDeliverables.map((d, idx) => (
-                  <ListItem key={`betadel-${idx}`} disableGutters sx={{ py: 0.2 }}>
-                    <ListItemIcon sx={{ minWidth: 24 }}><StarIcon color="primary" sx={{ fontSize: 14 }} /></ListItemIcon>
-                    <ListItemText primary={`MOU Feature: ${d}`} primaryTypographyProps={{ fontSize: "0.75rem", color: "text.primary" }} />
+                  <ListItem key={`betadel-${idx}`} disableGutters sx={{ py: 0.4 }}>
+                    <ListItemIcon sx={{ minWidth: 24 }}>
+                      <StarIcon color="primary" sx={{ fontSize: 15 }} />
+                    </ListItemIcon>
+                    <ListItemText primary={`MOU Feature: ${d}`} primaryTypographyProps={{ fontSize: "0.78rem", color: "text.primary", fontWeight: 500 }} />
                   </ListItem>
                 ))}
               </List>
