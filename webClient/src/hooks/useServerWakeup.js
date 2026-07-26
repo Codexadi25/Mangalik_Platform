@@ -22,14 +22,10 @@ const useServerWakeup = () => {
       if (hasWokenUpRef.current) return;
       hasWokenUpRef.current = true;
 
-      // Fire 2-3 quick requests to ensure load balancers route it and wake up instances.
+      // Fire a single request to ensure load balancers route it and wake up instances.
       const pingServer = async () => {
         try {
-          await Promise.all([
-            api.get("/health"),
-            new Promise((resolve) => setTimeout(resolve, 300)).then(() => api.get("/health")),
-            new Promise((resolve) => setTimeout(resolve, 800)).then(() => api.get("/health"))
-          ]);
+          await api.get("/health");
         } catch (error) {
           // Silent catch: we don't care if it fails, it's just a wakeup ping.
         }

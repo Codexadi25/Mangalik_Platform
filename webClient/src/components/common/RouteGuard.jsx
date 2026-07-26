@@ -10,13 +10,30 @@ import api from "../../services/api";
  * is shown instead of the page — with no error, no stack trace, and
  * no indication to the business owner (ADMIN) of *why* it happened.
  */
+let cachedConfigPromise = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+const getCachedConfig = () => {
+  const now = Date.now();
+  if (!cachedConfigPromise || (now - cacheTimestamp) > CACHE_DURATION) {
+    cachedConfigPromise = api.get("/ads/config").catch((err) => {
+      // Clear cache on failure so it can retry
+      cachedConfigPromise = null;
+      cacheTimestamp = 0;
+      throw err;
+    });
+    cacheTimestamp = now;
+  }
+  return cachedConfigPromise;
+};
+
 const RouteGuard = ({ route, children }) => {
   const [state, setState] = useState({ loading: true, blocked: false, message: "" });
 
   useEffect(() => {
     let mounted = true;
-    api
-      .get("/ads/config") // lightweight public endpoint also used to warm platform settings cache
+    getCachedConfig()
       .then(() => {
         // Route-disable check is enforced server-side on data-fetching
         // endpoints too; this client check just avoids a flash of
