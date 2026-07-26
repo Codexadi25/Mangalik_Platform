@@ -42,6 +42,24 @@ exports.getSettings = asyncHandler(async (req, res) => {
   });
 });
 
+exports.getPublicSettings = asyncHandler(async (req, res) => {
+  let settings = await BusinessSettings.findOne();
+  if (!settings) {
+    settings = await BusinessSettings.create({ businessName: "Mangalik" });
+  }
+  
+  res.status(200).json({
+    success: true,
+    data: {
+      businessName: settings.businessName,
+      logoUrl: settings.logoUrl,
+      supportEmail: settings.supportEmail,
+      supportPhone: settings.supportPhone,
+      businessLocation: settings.businessLocation,
+    }
+  });
+});
+
 exports.updateSettings = asyncHandler(async (req, res) => {
   const { businessName, logoUrl, supportEmail, supportPhone } = req.body;
 

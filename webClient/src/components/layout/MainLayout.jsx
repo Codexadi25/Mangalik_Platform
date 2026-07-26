@@ -19,6 +19,21 @@ const MainLayout = ({ children }) => {
   const cartCount = useSelector((s) => s.cart.items?.length || 0);
   const user = useSelector((s) => s.auth.user);
 
+  const [logo, setLogo] = useState("/Mangalik.png");
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_BASE_URL || "https://api.mangalik.store/api"}/business-settings/public`)
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData?.data?.logoUrl) {
+          setLogo(resData.data.logoUrl);
+        }
+      })
+      .catch(() => {
+        setLogo("/Mangalik.png");
+      });
+  }, []);
+
   const handleLogout = () => {
     dispatch(logoutThunk());
     navigate("/");
@@ -106,7 +121,14 @@ const MainLayout = ({ children }) => {
       <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
         <div className="container flex items-center justify-between">
           <RouterLink to="/" className="logo" onClick={() => { closeMobileMenu(); window.scrollTo(0, 0); }}>
-            <img src="/Mangalik.png" alt="Mangalik Logo" width={154} />
+            <img 
+              src={logo} 
+              alt="Mangalik Logo" 
+              width={154} 
+              onError={(e) => {
+                e.target.src = "/Mangalik.png";
+              }}
+            />
           </RouterLink>
 
           {/* SearchBar with Auto-Suggestions hints */}
@@ -387,7 +409,15 @@ const MainLayout = ({ children }) => {
           <div className="footer-grid">
             <div className="footer-col">
               <RouterLink to="/" onClick={() => window.scrollTo(0, 0)}>
-                <img src="/Mangalik.png" alt="Mangalik Logo" width={154} style={{ marginBottom: "20px" }} />
+                <img 
+                  src={logo} 
+                  alt="Mangalik Logo" 
+                  width={154} 
+                  style={{ marginBottom: "20px" }} 
+                  onError={(e) => {
+                    e.target.src = "/Mangalik.png";
+                  }}
+                />
               </RouterLink>
               <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "20px" }}>
                 Providing the finest pooja essentials for your devotion. Your spiritual journey is our priority.

@@ -51,6 +51,30 @@ const Settings = () => {
   });
   const [agreed, setAgreed] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.warning("Logo image exceeds 2MB limit.");
+      return;
+    }
+    setIsUploadingLogo(true);
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const { data } = await api.post("/products/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      setSettings(prev => ({ ...prev, logoUrl: data.url }));
+      toast.success("Logo uploaded successfully!");
+    } catch (err) {
+      toast.error("Failed to upload logo.");
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -183,14 +207,31 @@ const Settings = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Logo URL"
-                  value={settings.logoUrl || ""}
-                  onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                  margin="dense"
-                  size="small"
-                />
+                <Box display="flex" alignItems="center" gap={1}>
+                  <TextField
+                    fullWidth
+                    label="Logo URL"
+                    value={settings.logoUrl || ""}
+                    onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                    margin="dense"
+                    size="small"
+                  />
+                  <Button
+                    variant="contained"
+                    component="label"
+                    size="small"
+                    disabled={isUploadingLogo}
+                    sx={{ minWidth: "120px", mt: 0.5 }}
+                  >
+                    {isUploadingLogo ? "Uploading..." : "Upload Logo"}
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                    />
+                  </Button>
+                </Box>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField

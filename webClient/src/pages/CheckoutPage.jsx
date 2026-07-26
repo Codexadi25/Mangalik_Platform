@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { 
-  Container, Typography, TextField, Grid, Button, Box, Stack, Divider, Paper, CardActionArea 
+  Container, Typography, TextField, Grid, Button, Box, Stack, Divider, Paper, CardActionArea, Alert 
 } from "@mui/material";
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
@@ -354,6 +354,10 @@ const CheckoutPage = () => {
               <Typography variant="h6" fontWeight={800}>Total to Pay</Typography>
               <Typography variant="h6" fontWeight={800} color="primary.main">₹{total}</Typography>
             </Box>
+
+            <Alert severity="warning" sx={{ mb: 2, borderRadius: 2, fontWeight: "bold" }}>
+              Pay Online and Place Order is not in Development OR Testing Phase We are Coming Live Soon . .
+            </Alert>
 
             <Button variant="contained" size="large" fullWidth onClick={placeOrder} sx={{ borderRadius: 2, py: 1.5, fontWeight: 700, fontSize: "1.1rem", background: "linear-gradient(90deg, #FF6F1E 0%, #FF9A44 100%)", boxShadow: "0 4px 14px rgba(255, 111, 30, 0.4)" }}>
               Place Order
