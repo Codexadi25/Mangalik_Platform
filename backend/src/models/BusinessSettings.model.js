@@ -6,6 +6,8 @@ const businessSettingsSchema = new mongoose.Schema(
     logoUrl: { type: String },
     supportEmail: { type: String },
     supportPhone: { type: String },
+    businessEmail: { type: String },
+    supportWhatsapp: { type: String },
     termsOfUsage: { type: String },
     privacyPolicy: { type: String },
     subscriptionPlan: { type: String, default: "Custom Plan" },

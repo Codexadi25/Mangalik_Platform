@@ -55,13 +55,15 @@ exports.getPublicSettings = asyncHandler(async (req, res) => {
       logoUrl: settings.logoUrl,
       supportEmail: settings.supportEmail,
       supportPhone: settings.supportPhone,
+      businessEmail: settings.businessEmail,
+      supportWhatsapp: settings.supportWhatsapp,
       businessLocation: settings.businessLocation,
     }
   });
 });
 
 exports.updateSettings = asyncHandler(async (req, res) => {
-  const { businessName, logoUrl, supportEmail, supportPhone } = req.body;
+  const { businessName, logoUrl, supportEmail, supportPhone, businessEmail, supportWhatsapp } = req.body;
 
   let settings = await BusinessSettings.findOne();
   if (!settings) settings = new BusinessSettings();
@@ -70,6 +72,8 @@ exports.updateSettings = asyncHandler(async (req, res) => {
   if (logoUrl) settings.logoUrl = logoUrl;
   if (supportEmail) settings.supportEmail = supportEmail;
   if (supportPhone) settings.supportPhone = supportPhone;
+  if (businessEmail) settings.businessEmail = businessEmail;
+  if (supportWhatsapp) settings.supportWhatsapp = supportWhatsapp;
 
   if (req.body.businessLocation !== undefined) settings.businessLocation = req.body.businessLocation;
   if (req.body.deliveryChargePerKm !== undefined) settings.deliveryChargePerKm = Number(req.body.deliveryChargePerKm);

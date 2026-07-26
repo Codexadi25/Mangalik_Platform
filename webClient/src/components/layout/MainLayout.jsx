@@ -23,6 +23,8 @@ const MainLayout = ({ children }) => {
   const [businessName, setBusinessName] = useState("Mangalik");
   const [supportEmail, setSupportEmail] = useState("customersupport@mangalik.com");
   const [supportPhone, setSupportPhone] = useState("+91 99999 99999");
+  const [businessEmail, setBusinessEmail] = useState("businessrelations@mangalik.com");
+  const [supportWhatsapp, setSupportWhatsapp] = useState("919999999999");
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL || "https://api.mangalik.store/api"}/business-settings/public`)
@@ -34,6 +36,8 @@ const MainLayout = ({ children }) => {
           if (d.businessName) setBusinessName(d.businessName);
           if (d.supportEmail) setSupportEmail(d.supportEmail);
           if (d.supportPhone) setSupportPhone(d.supportPhone);
+          if (d.businessEmail) setBusinessEmail(d.businessEmail);
+          if (d.supportWhatsapp) setSupportWhatsapp(d.supportWhatsapp);
         }
       })
       .catch(() => {
@@ -496,7 +500,7 @@ const MainLayout = ({ children }) => {
                 </li>
                 <li style={{ marginBottom: "15px" }}>
                   <a
-                    href={`https://wa.me/${supportPhone.replace(/[^0-9]/g, "")}`}
+                    href={`https://wa.me/${supportWhatsapp.replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}
@@ -509,7 +513,12 @@ const MainLayout = ({ children }) => {
                 </li>
                 <li style={{ marginBottom: "10px" }}>
                   <a href={`mailto:${supportEmail}`} style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
-                    ✉️ Support: {supportEmail}
+                    ✉️ Customers: {supportEmail}
+                  </a>
+                </li>
+                <li>
+                  <a href={`mailto:${businessEmail}`} style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
+                    ✉️ Business: {businessEmail}
                   </a>
                 </li>
               </ul>

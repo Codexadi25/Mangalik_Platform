@@ -39,6 +39,8 @@ const Settings = () => {
     logoUrl: "",
     supportEmail: "",
     supportPhone: "",
+    businessEmail: "",
+    supportWhatsapp: "",
     subscriptionPlan: "Custom Plan",
     subscriptionCost: 69999,
     subscriptionProvider: "Aditya Tech & Devoops",
@@ -106,6 +108,8 @@ const Settings = () => {
         logoUrl: settings.logoUrl,
         supportEmail: settings.supportEmail,
         supportPhone: settings.supportPhone,
+        businessEmail: settings.businessEmail,
+        supportWhatsapp: settings.supportWhatsapp,
         businessLocation: settings.businessLocation,
         deliveryChargePerKm: Number(settings.deliveryChargePerKm),
         baseDeliveryDistanceLimit: Number(settings.baseDeliveryDistanceLimit),
@@ -257,6 +261,28 @@ const Settings = () => {
                   label="Support Phone"
                   value={settings.supportPhone || ""}
                   onChange={(e) => setSettings({ ...settings, supportPhone: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="WhatsApp Contact"
+                  value={settings.supportWhatsapp || ""}
+                  onChange={(e) => setSettings({ ...settings, supportWhatsapp: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Business Relations Email"
+                  value={settings.businessEmail || ""}
+                  onChange={(e) => setSettings({ ...settings, businessEmail: e.target.value })}
                   size="small"
                   sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />
