@@ -20,13 +20,20 @@ const MainLayout = ({ children }) => {
   const user = useSelector((s) => s.auth.user);
 
   const [logo, setLogo] = useState("/Mangalik.png");
+  const [businessName, setBusinessName] = useState("Mangalik");
+  const [supportEmail, setSupportEmail] = useState("customersupport@mangalik.com");
+  const [supportPhone, setSupportPhone] = useState("+91 99999 99999");
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL || "https://api.mangalik.store/api"}/business-settings/public`)
       .then((res) => res.json())
       .then((resData) => {
-        if (resData?.data?.logoUrl) {
-          setLogo(resData.data.logoUrl);
+        const d = resData?.data;
+        if (d) {
+          if (d.logoUrl) setLogo(d.logoUrl);
+          if (d.businessName) setBusinessName(d.businessName);
+          if (d.supportEmail) setSupportEmail(d.supportEmail);
+          if (d.supportPhone) setSupportPhone(d.supportPhone);
         }
       })
       .catch(() => {
@@ -411,7 +418,7 @@ const MainLayout = ({ children }) => {
               <RouterLink to="/" onClick={() => window.scrollTo(0, 0)}>
                 <img 
                   src={logo} 
-                  alt="Mangalik Logo" 
+                  alt={`${businessName} Logo`} 
                   width={154} 
                   style={{ marginBottom: "20px" }} 
                   onError={(e) => {
@@ -478,18 +485,18 @@ const MainLayout = ({ children }) => {
               <ul>
                 <li style={{ marginBottom: "15px" }}>
                   <a
-                    href="tel:+919999999999"
+                    href={`tel:${supportPhone}`}
                     style={{ color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}
                   >
                     <span className="social-icon" style={{ width: "32px", height: "32px" }}>
                       📞
                     </span>
-                    +91 99999 99999
+                    {supportPhone}
                   </a>
                 </li>
                 <li style={{ marginBottom: "15px" }}>
                   <a
-                    href="https://wa.me/919999999999"
+                    href={`https://wa.me/${supportPhone.replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}
@@ -501,20 +508,15 @@ const MainLayout = ({ children }) => {
                   </a>
                 </li>
                 <li style={{ marginBottom: "10px" }}>
-                  <a href="mailto:customersupport@mangalik.com" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
-                    ✉️ Customers: customersupport@mangalik.com
-                  </a>
-                </li>
-                <li>
-                  <a href="mailto:businessrelations@mangalik.com" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
-                    ✉️ Business: businessrelations@mangalik.com
+                  <a href={`mailto:${supportEmail}`} style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
+                    ✉️ Support: {supportEmail}
                   </a>
                 </li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; {new Date().getFullYear()} MANGLIK INDUSTRIES PVT. LTD. - Brand Name: MANGLIK. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} {businessName.toUpperCase()} INDUSTRIES PVT. LTD. - Brand Name: {businessName.toUpperCase()}. All rights reserved.</p>
           </div>
         </div>
       </footer>
