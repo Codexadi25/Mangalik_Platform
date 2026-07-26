@@ -111,4 +111,45 @@ router.post("/status", async (req, res) => {
   }
 });
 
+router.post("/status/bulk", async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    if (!ids || !Array.isArray(ids) || !["active", "blocked", "whitelisted"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid payload parameters." });
+    }
+
+    const records = await DefenderBlock.find({ _id: { $in: ids } });
+    for (const record of records) {
+      const oldStatus = record.status;
+      record.status = status;
+
+      if (status === "active" || status === "whitelisted") {
+        record.graceIncrements = 0;
+        record.currentGracePeriodMs = 300000;
+        record.graceUntil = null;
+
+        if (oldStatus === "blocked" && record.connectedAccounts.length > 0) {
+          await User.updateMany(
+            { email: { $in: record.connectedAccounts } },
+            { $set: { isSuspended: false } }
+          );
+        }
+      } else if (status === "blocked") {
+        if (record.connectedAccounts.length > 0) {
+          await User.updateMany(
+            { email: { $in: record.connectedAccounts } },
+            { $set: { isSuspended: true } }
+          );
+        }
+      }
+      await record.save();
+    }
+
+    res.status(200).json({ success: true, message: "Bulk status updated successfully." });
+  } catch (error) {
+    console.error("Defender bulk update error:", error);
+    res.status(500).json({ success: false, message: "Failed to update bulk status." });
+  }
+});
+
 module.exports = router;

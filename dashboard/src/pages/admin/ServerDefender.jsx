@@ -17,7 +17,8 @@ import {
   CardContent,
   CircularProgress,
   Stack,
-  Divider
+  Divider,
+  Checkbox
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import GppBadIcon from "@mui/icons-material/GppBad";
@@ -43,6 +44,35 @@ const ServerDefender = () => {
   const [attackLogs, setAttackLogs] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [attackPage, setAttackPage] = useState(0);
+  const [attackRowsPerPage, setAttackRowsPerPage] = useState(10); // default to 10 logs per page
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(records.map(r => r._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkStatusChange = async (status) => {
+    if (selectedIds.length === 0) return;
+    try {
+      await api.post("/defender/status/bulk", { ids: selectedIds, status });
+      toast.success(`Successfully updated ${selectedIds.length} records.`);
+      setSelectedIds([]);
+      fetchRecords();
+    } catch (err) {
+      toast.error("Failed to perform bulk status update.");
+    }
+  };
 
   const fetchRecords = async () => {
     setLoading(true);
@@ -211,13 +241,31 @@ const ServerDefender = () => {
 
       {/* Active Rules / Defender Records Table */}
       <Paper sx={{ mb: 4, borderRadius: 3, overflow: "hidden", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
-        <Box sx={{ p: 2.5, bg: "background.paper" }}>
-          <Typography variant="subtitle1" fontWeight={800} color="text.primary">
-            Active Blocked / Whitelisted Devices
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            IP and MAC records dynamically generated from system rate-limiting rules.
-          </Typography>
+        <Box sx={{ p: 2.5, bg: "background.paper", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={800} color="text.primary">
+              Active Blocked / Whitelisted Devices
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              IP and MAC records dynamically generated from system rate-limiting rules.
+            </Typography>
+          </Box>
+          {selectedIds.length > 0 && (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mr: 1 }}>
+                {selectedIds.length} selected
+              </Typography>
+              <Button size="small" variant="contained" color="success" onClick={() => handleBulkStatusChange("whitelisted")} sx={{ fontWeight: 700, textTransform: "none" }}>
+                Bulk Whitelist
+              </Button>
+              <Button size="small" variant="contained" color="error" onClick={() => handleBulkStatusChange("blocked")} sx={{ fontWeight: 700, textTransform: "none" }}>
+                Bulk Block
+              </Button>
+              <Button size="small" variant="contained" color="primary" onClick={() => handleBulkStatusChange("active")} sx={{ fontWeight: 700, textTransform: "none" }}>
+                Bulk Reset
+              </Button>
+            </Stack>
+          )}
         </Box>
         <Divider />
         <TableContainer>
@@ -229,6 +277,13 @@ const ServerDefender = () => {
             <Table>
               <TableHead sx={{ bgcolor: "rgba(0,0,0,0.01)" }}>
                 <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={selectedIds.length > 0 && selectedIds.length < records.length}
+                      checked={records.length > 0 && selectedIds.length === records.length}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Client IP & MAC</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Connected Accounts</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
@@ -242,13 +297,19 @@ const ServerDefender = () => {
               <TableBody>
                 {records.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                    <TableCell colSpan={9} align="center" sx={{ py: 3, color: "text.secondary" }}>
                       No active security records or rule deviations found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   records.map((row) => (
-                    <TableRow key={row._id} hover>
+                    <TableRow key={row._id} hover selected={selectedIds.includes(row._id)}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(row._id)}
+                          onChange={() => handleSelectOne(row._id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600}>{row.ip}</Typography>
                         <Typography variant="caption" color="text.secondary" display="block">
@@ -369,28 +430,75 @@ const ServerDefender = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  attackLogs.map((log, index) => (
-                    <TableRow key={index} hover>
-                      <TableCell sx={{ fontWeight: 600, color: "primary.dark" }}>
-                        {log.ip}
-                      </TableCell>
-                      <TableCell>{log.type}</TableCell>
-                      <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={log.action} 
-                          color="error" 
-                          size="small" 
-                          sx={{ fontWeight: 700, fontSize: "0.7rem" }} 
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  attackLogs
+                    .slice(attackPage * attackRowsPerPage, (attackPage + 1) * attackRowsPerPage)
+                    .map((log, index) => (
+                      <TableRow key={index} hover>
+                        <TableCell sx={{ fontWeight: 600, color: "primary.dark" }}>
+                          {log.ip}
+                        </TableCell>
+                        <TableCell>{log.type}</TableCell>
+                        <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={log.action} 
+                            color="error" 
+                            size="small" 
+                            sx={{ fontWeight: 700, fontSize: "0.7rem" }} 
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
                 )}
               </TableBody>
             </Table>
           )}
         </TableContainer>
+
+        {/* Attack Logs Pagination controls */}
+        {attackLogs.length > 0 && attackLogs[0]?.ip !== "-" && (
+          <>
+            <Divider />
+            <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="caption" color="text.secondary">Logs per page:</Typography>
+                <FormControl size="small" sx={{ minWidth: 70 }}>
+                  <Select
+                    value={attackRowsPerPage}
+                    onChange={(e) => { setAttackRowsPerPage(Number(e.target.value)); setAttackPage(0); }}
+                    sx={{ height: 30, fontSize: "0.75rem", borderRadius: 2 }}
+                  >
+                    <MenuItem value={10}>10 Logs</MenuItem>
+                    <MenuItem value={20}>20 Logs</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                  Page {attackPage + 1} of {Math.ceil(attackLogs.length / attackRowsPerPage) || 1}
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={attackPage === 0}
+                  onClick={() => setAttackPage(prev => prev - 1)}
+                  sx={{ minWidth: 32, py: 0.25, fontWeight: "bold" }}
+                >
+                  &lt;
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={attackPage >= Math.ceil(attackLogs.length / attackRowsPerPage) - 1}
+                  onClick={() => setAttackPage(prev => prev + 1)}
+                  sx={{ minWidth: 32, py: 0.25, fontWeight: "bold" }}
+                >
+                  &gt;
+                </Button>
+              </Stack>
+            </Box>
+          </>
+        )}
       </Paper>
 
     </Box>
