@@ -50,6 +50,7 @@ const ServerDefender = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [attackPage, setAttackPage] = useState(0);
   const [attackRowsPerPage, setAttackRowsPerPage] = useState(10); // default to 10 logs per page
+  const [stats, setStats] = useState({ blocked: 0, whitelisted: 0, grace: 0 });
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -85,6 +86,7 @@ const ServerDefender = () => {
         api.get("/defender/attack-logs")
       ]);
       setRecords(resDefender.data.data || []);
+      setStats(resDefender.data.stats || { blocked: 0, whitelisted: 0, grace: 0 });
       setAttackLogs(resAttacks.data.data || []);
     } catch (err) {
       toast.error("Failed to load security records.");
@@ -114,18 +116,18 @@ const ServerDefender = () => {
 
   const handleUpdateStatus = async (id, status) => {
     try {
-      const { data } = await api.post("/defender/status", { id, status });
+      await api.post("/defender/status", { id, status });
       toast.success(`Device status updated to ${status}.`);
-      setRecords(records.map(r => r._id === id ? data.data : r));
+      fetchRecords();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update status.");
     }
   };
 
   // Stats helpers
-  const blockedCount = records.filter(r => r.status === "blocked").length;
-  const whitelistedCount = records.filter(r => r.status === "whitelisted").length;
-  const graceCount = records.filter(r => r.status === "grace").length;
+  const blockedCount = stats.blocked;
+  const whitelistedCount = stats.whitelisted;
+  const graceCount = stats.grace;
 
   // Chart data formatting
   const getChartData = () => {

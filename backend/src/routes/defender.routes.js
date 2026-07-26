@@ -56,7 +56,17 @@ router.get("/", async (req, res) => {
     }
 
     const records = await DefenderBlock.find(filter).sort({ updatedAt: -1 }).limit(100);
-    res.status(200).json({ success: true, data: records });
+    const [blocked, whitelisted, grace] = await Promise.all([
+      DefenderBlock.countDocuments({ status: "blocked" }),
+      DefenderBlock.countDocuments({ status: "whitelisted" }),
+      DefenderBlock.countDocuments({ status: "grace" })
+    ]);
+
+    res.status(200).json({ 
+      success: true, 
+      data: records,
+      stats: { blocked, whitelisted, grace }
+    });
   } catch (error) {
     console.error("Defender fetch error:", error);
     res.status(500).json({ success: false, message: "Failed to fetch defender records." });
