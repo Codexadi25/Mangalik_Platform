@@ -597,57 +597,59 @@
     padding: 60px 0;
   }
 
-  /* Navbar Mobile Layout */
-  .navbar .container {
-    position: relative;
-    justify-content: space-between;
-  }
+  /* Navbar Mobile Layout (up to 1024px) */
+  @media (max-width: 1024px) {
+    .navbar .container {
+      position: relative;
+      justify-content: space-between;
+    }
 
-  .navbar .logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+    .navbar .logo {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
 
-  .navbar {
-    padding: 30px 0 15px;
-  }
+    .navbar {
+      padding: 30px 0 15px;
+    }
 
-  .nav-toggle {
-    display: flex;
-    order: -1;
-  }
+    .nav-toggle {
+      display: flex;
+      order: -1;
+    }
 
-  .nav-links {
-    position: fixed;
-    top: 0;
-    right: 0;
-    transform: translateX(100%);
-    width: 100%;
-    height: 100vh;
-    background: var(--white);
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: 0.4s cubic-bezier(0.77,0.2,0.05,1.0);
-    z-index: 1000;
-  }
+    .nav-links {
+      position: fixed;
+      top: 0;
+      right: 0;
+      transform: translateX(100%);
+      width: 100%;
+      height: 100vh;
+      background: var(--white);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: 0.4s cubic-bezier(0.77,0.2,0.05,1.0);
+      z-index: 1000;
+    }
 
-  .nav-links.active {
-    transform: translateX(0);
-  }
+    .nav-links.active {
+      transform: translateX(0);
+    }
 
-  .nav-links li {
-    margin: 15px 0;
-  }
+    .nav-links li {
+      margin: 15px 0;
+    }
 
-  .nav-links li a {
-    font-size: 1.8rem;
-    font-family: 'Fredoka', sans-serif;
-  }
+    .nav-links li a {
+      font-size: 1.8rem;
+      font-family: 'Fredoka', sans-serif;
+    }
 
-  .nav-btns {
-    display: none;
+    .nav-btns {
+      display: none;
+    }
   }
 
   /* Hero Mobile */
@@ -1351,7 +1353,7 @@
   color: var(--secondary);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .page-container {
     padding-top: 100px;
   }
