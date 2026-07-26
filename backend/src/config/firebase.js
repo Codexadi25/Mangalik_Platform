@@ -9,14 +9,21 @@ const logger = require("../utils/logger");
  */
 if (!admin.apps.length) {
   try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/"/g, "").replace(/\\n/g, "\n"),
-      }),
-    });
-    logger.info("Firebase Admin SDK initialized");
+    const pKey = process.env.FIREBASE_PRIVATE_KEY || "";
+    const isDummy = !pKey || pKey.includes("...") || pKey.includes("xxxxxx") || pKey.length < 100;
+    
+    if (isDummy) {
+      logger.info("Firebase Admin SDK: Skip initialization (using placeholder credentials)");
+    } else {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: pKey.replace(/"/g, "").replace(/\\n/g, "\n"),
+        }),
+      });
+      logger.info("Firebase Admin SDK initialized");
+    }
   } catch (error) {
     logger.warn("Firebase Admin SDK failed to initialize: " + error.message);
   }
