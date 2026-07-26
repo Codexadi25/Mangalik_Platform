@@ -1,14 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import obfuscatorPlugin from "vite-plugin-obfuscator";
+import { viteObfuscateFile } from "vite-plugin-obfuscator";
 
 export default defineConfig(({ command }) => ({
   assetsInclude: ['**/*.PNG'],
   plugins: [
     tailwindcss(),
     react(),
-    command === 'build' && obfuscatorPlugin({
+    command === 'build' && viteObfuscateFile({
       options: {
         compact: true,
         controlFlowFlattening: true,
