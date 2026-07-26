@@ -106,21 +106,23 @@ const ProductDetail = () => {
 
             <Divider sx={{ my: 3 }} />
 
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Button variant="outlined" onClick={() => setQty((q) => Math.max(1, q - 1))}>-</Button>
-              <Typography>{qty}</Typography>
-              <Button variant="outlined" onClick={() => setQty((q) => q + 1)}>+</Button>
-              <Button variant="contained" size="large" onClick={handleAddToCart} disabled={product.stock === 0}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "stretch", sm: "center" }} sx={{ mt: 3, width: "100%" }}>
+              <Stack direction="row" spacing={2} alignItems="center" justifyContent="center" sx={{ border: "1px solid #e0e0e0", borderRadius: 1.5, p: 0.5, alignSelf: { xs: "center", sm: "auto" } }}>
+                <Button size="small" variant="text" sx={{ minWidth: 32, p: 0.5 }} onClick={() => setQty((q) => Math.max(1, q - 1))}>-</Button>
+                <Typography sx={{ minWidth: 24, textAlign: "center", fontWeight: "bold" }}>{qty}</Typography>
+                <Button size="small" variant="text" sx={{ minWidth: 32, p: 0.5 }} onClick={() => setQty((q) => q + 1)}>+</Button>
+              </Stack>
+              <Button variant="contained" size="large" fullWidth onClick={handleAddToCart} disabled={product.stock === 0} sx={{ py: 1.5, textTransform: "none", fontWeight: 700 }}>
                 {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
               </Button>
-              <Button variant="contained" color="secondary" size="large" onClick={handleBuyNow} disabled={product.stock === 0}>
+              <Button variant="contained" color="secondary" size="large" fullWidth onClick={handleBuyNow} disabled={product.stock === 0} sx={{ py: 1.5, textTransform: "none", fontWeight: 700 }}>
                 {product.stock === 0 ? "Out of Stock" : "Buy Now"}
               </Button>
               <Button 
                 variant="outlined" 
                 size="large" 
                 onClick={() => dispatch(toggleWishlist(product._id))}
-                sx={{ minWidth: 56, px: 0 }}
+                sx={{ minWidth: 56, px: 0, py: 1.5, alignSelf: { xs: "center", sm: "auto" } }}
               >
                 {wishlist?.some(item => (item._id || item) === product._id) ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
               </Button>
