@@ -79,12 +79,27 @@ router.get("/", async (req, res) => {
  */
 router.post("/status", async (req, res) => {
   try {
-    const { id, status } = req.body;
-    if (!id || !["active", "blocked", "whitelisted"].includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid record ID or status." });
+    const { id, ip, status } = req.body;
+    if ((!id && !ip) || !["active", "blocked", "whitelisted"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid payload parameters." });
     }
 
-    const record = await DefenderBlock.findById(id);
+    let record;
+    if (id) {
+      record = await DefenderBlock.findById(id);
+    } else if (ip) {
+      record = await DefenderBlock.findOne({ ip });
+      if (!record) {
+        record = new DefenderBlock({
+          ip,
+          deviceMac: "N/A",
+          status,
+          violationsCount: 0,
+          reason: "Manual status override from attack logs"
+        });
+      }
+    }
+
     if (!record) {
       return res.status(404).json({ success: false, message: "Record not found." });
     }

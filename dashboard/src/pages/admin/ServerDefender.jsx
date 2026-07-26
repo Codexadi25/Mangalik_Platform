@@ -124,6 +124,17 @@ const ServerDefender = () => {
     }
   };
 
+  const handleUpdateIPStatus = async (ip, status) => {
+    if (!ip || ip === "Unknown IP" || ip === "-") return;
+    try {
+      await api.post("/defender/status", { ip, status });
+      toast.success(`IP ${ip} status updated to ${status}.`);
+      fetchRecords();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update IP status.");
+    }
+  };
+
   // Stats helpers
   const blockedCount = stats.blocked;
   const whitelistedCount = stats.whitelisted;
@@ -425,12 +436,13 @@ const ServerDefender = () => {
                   <TableCell sx={{ fontWeight: 700 }}>Attack Type</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Timestamp</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Action Taken</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {attackLogs.length === 0 || attackLogs[0]?.ip === "-" ? (
                   <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 3, color: "text.secondary" }}>
                       No attacks or suspicious activity logged recently.
                     </TableCell>
                   </TableRow>
@@ -451,6 +463,28 @@ const ServerDefender = () => {
                             size="small" 
                             sx={{ fontWeight: 700, fontSize: "0.7rem" }} 
                           />
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="success"
+                              disabled={log.ip === "Unknown IP" || log.ip === "-"}
+                              onClick={() => handleUpdateIPStatus(log.ip, "whitelisted")}
+                            >
+                              Whitelist
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="primary"
+                              disabled={log.ip === "Unknown IP" || log.ip === "-"}
+                              onClick={() => handleUpdateIPStatus(log.ip, "active")}
+                            >
+                              Unblock
+                            </Button>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))
