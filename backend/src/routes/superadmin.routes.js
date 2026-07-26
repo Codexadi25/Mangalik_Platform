@@ -19,5 +19,6 @@ router.patch("/ads", ctrl.updateAdsConfig);
 router.patch("/route-toggle", ctrl.toggleRoute);
 router.patch("/users/:id/suspend", ctrl.setUserSuspension);
 router.get("/audit-logs", ctrl.getAuditLogs);
+router.get("/system-logs", ctrl.getSystemLogs);
 
 module.exports = router;

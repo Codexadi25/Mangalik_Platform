@@ -1,6 +1,7 @@
 const PlatformSettings = require("../models/PlatformSettings.model");
 const AuditLog = require("../models/AuditLog.model");
 const User = require("../models/User.model");
+const Log = require("../models/Log.model");
 const asyncHandler = require("../utils/asyncHandler");
 const { invalidateSettingsCache, getSettings } = require("../middleware/platformControl.middleware");
 
@@ -152,6 +153,19 @@ const getAuditLogs = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: logs });
 });
 
+/** GET /api/superadmin/system-logs */
+const getSystemLogs = asyncHandler(async (req, res) => {
+  const { filterType, limit = 15 } = req.query;
+  const query = {};
+  if (filterType === "errors") {
+    query.level = "error";
+  }
+  const logs = await Log.find(query)
+    .sort({ timestamp: -1 })
+    .limit(Number(limit));
+  res.status(200).json({ success: true, data: logs });
+});
+
 module.exports = {
   getPlatformSettings,
   setGlobalKillSwitch,
@@ -161,4 +175,5 @@ module.exports = {
   toggleRoute,
   setUserSuspension,
   getAuditLogs,
+  getSystemLogs
 };

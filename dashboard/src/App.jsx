@@ -21,6 +21,7 @@ import AdsControl from "./pages/superadmin/AdsControl";
 import FeatureFlags from "./pages/superadmin/FeatureFlags";
 import UserManagement from "./pages/superadmin/UserManagement";
 import AuditLogs from "./pages/superadmin/AuditLogs";
+import SystemLogs from "./pages/superadmin/SystemLogs";
 
 import AdminOverview from "./pages/admin/Overview";
 import Catalog from "./pages/admin/Catalog";
@@ -77,6 +78,7 @@ function App() {
               <Route path="/superadmin/feature-flags" element={<RoleGuard allow={["superadmin"]}><DashboardLayout><FeatureFlags /></DashboardLayout></RoleGuard>} />
               <Route path="/superadmin/users" element={<RoleGuard allow={["superadmin"]}><DashboardLayout><UserManagement /></DashboardLayout></RoleGuard>} />
               <Route path="/superadmin/audit-logs" element={<RoleGuard allow={["superadmin"]}><DashboardLayout><AuditLogs /></DashboardLayout></RoleGuard>} />
+              <Route path="/superadmin/system-logs" element={<RoleGuard allow={["superadmin"]}><DashboardLayout><SystemLogs /></DashboardLayout></RoleGuard>} />
 
               {/* ---------------- ADMIN (Business Owner) + SUPERADMIN ---------------- */}
               <Route path="/admin/overview" element={<RoleGuard allow={["admin", "superadmin"]}><DashboardLayout><AdminOverview /></DashboardLayout></RoleGuard>} />

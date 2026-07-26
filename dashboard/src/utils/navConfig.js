@@ -23,6 +23,7 @@ export const NAV_BY_ROLE = {
     { label: "Route / Feature Toggles", path: "/superadmin/feature-flags", icon: "ToggleOn" },
     { label: "User & Role Management", path: "/superadmin/users", icon: "People" },
     { label: "Audit Logs", path: "/superadmin/audit-logs", icon: "History" },
+    { label: "System Logs", path: "/superadmin/system-logs", icon: "History" },
     // Superadmin also inherits full visibility into every admin module below:
     { label: "Catalog", path: "/admin/catalog", icon: "Inventory2" },
     { label: "Orders", path: "/admin/orders", icon: "ShoppingBag" },

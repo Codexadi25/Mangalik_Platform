@@ -29,7 +29,16 @@ const errorHandler = (err, req, res, next) => {
   message = message || "Internal server error.";
 
   if (statusCode >= 500) {
-    logger.error(`${req.method} ${req.originalUrl} → ${message}`, { stack: err.stack });
+    const responseTime = req.startTime ? `${Date.now() - req.startTime}ms` : "N/A";
+    const resourceName = req.originalUrl.split("?")[0].replace("/api/", "");
+    logger.error(`${req.method} ${req.originalUrl} → ${message}`, {
+      statusCode,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+      responseTime,
+      action: `${req.method} on ${resourceName || "root"}`,
+      stack: err.stack
+    });
   } else {
     logger.debug(`${req.method} ${req.originalUrl} → ${message}`);
   }
