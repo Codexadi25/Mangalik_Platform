@@ -6,6 +6,7 @@ import "./AccountDashboard.css";
 
 import { fetchProfile, updateProfile, toggleWishlist } from "../redux/slices/userSlice";
 import { fetchMyOrders } from "../redux/slices/orderSlice";
+import { getProductImageUrl } from "../utils/imageHelper";
 
 // Inline Lightweight SVGs to replace Material UI Icons
 const HomeIcon = () => (
@@ -346,7 +347,7 @@ const AccountDashboard = () => {
                     <button className="wishlist-remove-btn" onClick={() => dispatch(toggleWishlist(p._id))}>
                       <TrashIcon />
                     </button>
-                    <img src={p.images?.[0]?.url || "/placeholder-product.png"} alt={p.title} className="wishlist-img" />
+                    <img src={getProductImageUrl(p.images?.[0]?.url) || "/placeholder-product.png"} alt={p.title} className="wishlist-img" />
                     <div className="wishlist-info">
                       <h4>{p.title}</h4>
                       <div className="wishlist-price">₹{p.basePrice}</div>

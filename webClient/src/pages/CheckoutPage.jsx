@@ -13,6 +13,7 @@ import api from "../services/api";
 import { fetchCart } from "../redux/slices/cartSlice";
 import { updateProfile } from "../redux/slices/userSlice";
 import { FormControlLabel, Checkbox, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
+import { getProductImageUrl } from "../utils/imageHelper";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -299,7 +300,7 @@ const CheckoutPage = () => {
               {items.map(item => (
                 <Box key={item.product._id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Box component="img" src={item.product.images?.[0]?.url || "https://placehold.co/100"} sx={{ width: 40, height: 40, borderRadius: 1, objectFit: "cover", mr: 2 }} />
+                    <Box component="img" src={getProductImageUrl(item.product.images?.[0]?.url) || "https://placehold.co/100"} sx={{ width: 40, height: 40, borderRadius: 1, objectFit: "cover", mr: 2 }} />
                     <Box>
                       <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 180 }}>{item.product.title}</Typography>
                       <Typography variant="caption" color="text.secondary">Qty: {item.quantity}</Typography>

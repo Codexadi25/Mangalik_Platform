@@ -36,7 +36,7 @@ app.use(
 );
 
 // --- Health check (always reachable, bypasses kill-switch, used by load balancers) ---
-app.get("/health", (req, res) => res.status(200).json({ status: "ok", service: "mangalik-api" }));
+app.get(["/health", "/api/health"], (req, res) => res.status(200).json({ status: "ok", service: "mangalik-api" }));
 
 // --- Superadmin platform-wide kill-switch enforcement ---
 // Auth routes must remain accessible so the superadmin can actually log in!
