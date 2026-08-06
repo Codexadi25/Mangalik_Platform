@@ -86,12 +86,41 @@ router.get("/:id/history", authorize("admin", "superadmin", "manager", "agent"),
   
   let historyData = {};
   if (user.role === "user") {
+    const activeOrders = await Order.find({ user: user._id, status: { $ne: "cancelled" } });
     const totalOrders = await Order.countDocuments({ user: user._id });
     const canceledOrders = await Order.countDocuments({ user: user._id, status: "cancelled" });
-    historyData = { totalOrders, canceledOrders };
-  } else if (user.role === "vendor") {
-    const vendorOrders = await Order.countDocuments({ "items.vendor": user.vendorProfile?._id });
-    historyData = { vendorOrders };
+    const totalSpent = activeOrders.reduce((sum, o) => sum + o.total, 0);
+    const netMargin = Math.round(activeOrders.reduce((sum, o) => sum + (o.subtotal * 0.15 - (o.discount || 0)), 0));
+    historyData = { totalOrders, canceledOrders, totalSpent, netMargin };
+  } else if (user.role === "vendor" || user.vendorProfile) {
+    const vendorProfileId = user.vendorProfile?._id || user._id;
+    const Vendor = require("../models/Vendor.model");
+    const vendor = await Vendor.findOne({ $or: [{ _id: vendorProfileId }, { user: user._id }] });
+    const vendorId = vendor ? vendor._id : vendorProfileId;
+
+    const vendorOrders = await Order.find({ "items.vendor": vendorId, status: { $ne: "cancelled" } });
+    const totalOrdersCount = await Order.countDocuments({ "items.vendor": vendorId });
+    
+    let netSales = 0;
+    for (const o of vendorOrders) {
+      for (const item of o.items) {
+        if (String(item.vendor) === String(vendorId)) {
+          netSales += item.price * item.quantity;
+        }
+      }
+    }
+    const commissionPercent = vendor ? (vendor.commissionPercent || 10) : 10;
+    const netCommission = Math.round((netSales * commissionPercent) / 100);
+    const outstandingPayment = netSales - netCommission;
+    const netMargin = outstandingPayment;
+    
+    historyData = {
+      vendorOrders: totalOrdersCount,
+      netSales,
+      netCommission,
+      outstandingPayment,
+      netMargin
+    };
   } else if (user.role === "deliveryPartner") {
     const deliveredOrders = await Order.countDocuments({ assignedDeliveryPartner: user._id, status: "delivered" });
     historyData = { deliveredOrders };

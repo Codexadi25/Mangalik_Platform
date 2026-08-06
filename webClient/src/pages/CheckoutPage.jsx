@@ -29,6 +29,17 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [promoCode, setPromoCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [businessSettings, setBusinessSettings] = useState(null);
+
+  useEffect(() => {
+    api.get("/business-settings/public")
+      .then(({ data }) => {
+        if (data.data) {
+          setBusinessSettings(data.data);
+        }
+      })
+      .catch((err) => console.error("Failed to load business settings", err));
+  }, []);
 
   useEffect(() => {
     dispatch(fetchCart());
@@ -160,8 +171,34 @@ const CheckoutPage = () => {
           navigate("/account?tab=orders");
         },
         theme: { color: "#FF6F1E" },
+        modal: {
+          ondismiss: async () => {
+            try {
+              await api.post("/orders/verify-payment", {
+                orderId: data.data.order._id,
+                status: "failed",
+                reason: "Payment window closed by user"
+              });
+            } catch (err) {
+              console.error("Failed to register cancelled checkout", err);
+            }
+          }
+        }
       };
       const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", async (response) => {
+        try {
+          await api.post("/orders/verify-payment", {
+            orderId: data.data.order._id,
+            status: "failed",
+            reason: response.error?.description || "Transaction failed at gateway"
+          });
+          toast.error(`Payment Failed: ${response.error?.description || "Gateway transaction rejected."}`);
+          navigate("/account?tab=orders");
+        } catch (err) {
+          console.error("Failed to register failed payment", err);
+        }
+      });
       rzp.open();
     } catch (err) {
       toast.error(err.response?.data?.message || "Checkout failed.");
@@ -171,9 +208,35 @@ const CheckoutPage = () => {
   const subtotal = items.reduce((sum, i) => sum + (i.product?.basePrice || 0) * i.quantity, 0);
   const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const shippingFee = discountedSubtotal > 999 ? 0 : 79;
+  const pinVal = address?.pincode ? parseInt(address.pincode.toString().replace(/\D/g, "")) || 0 : 0;
+  const distance = 1 + (pinVal % 25);
+  
+  let baseCharge = 49;
+  let chargePerKm = 12;
+  let distanceLimit = 5;
+  let platformFee = 14.90;
+  let packagingCharges = 10.00;
+  let donationAmount = 3.00;
+
+  if (businessSettings) {
+    baseCharge = Number(businessSettings.baseDeliveryCharge ?? 49);
+    chargePerKm = Number(businessSettings.deliveryChargePerKm ?? 12);
+    distanceLimit = Number(businessSettings.baseDeliveryDistanceLimit ?? 5);
+    platformFee = businessSettings.platformFee !== undefined ? Number(businessSettings.platformFee) : 14.90;
+    packagingCharges = businessSettings.packagingCharges !== undefined ? Number(businessSettings.packagingCharges) : 10.00;
+    donationAmount = businessSettings.donationAmount !== undefined ? Number(businessSettings.donationAmount) : 3.00;
+  }
+
+  let shippingFee = baseCharge;
+  if (distance > distanceLimit) {
+    shippingFee += Math.round((distance - distanceLimit) * chargePerKm);
+  }
+  if (discountedSubtotal > 999) {
+    shippingFee = 0;
+  }
+
   const gstAmount = Math.round(discountedSubtotal * 0.05);
-  const total = discountedSubtotal + shippingFee + gstAmount;
+  const total = Number((discountedSubtotal + shippingFee + gstAmount + platformFee + packagingCharges + donationAmount).toFixed(2));
 
   if (items.length === 0) {
     return (
@@ -346,6 +409,18 @@ const CheckoutPage = () => {
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography color="text.secondary">Tax (GST)</Typography>
                 <Typography fontWeight={600}>₹{gstAmount}</Typography>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography color="text.secondary">Donate to Feeding India</Typography>
+                <Typography fontWeight={600}>₹{donationAmount.toFixed(2)}</Typography>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography color="text.secondary">Platform fee</Typography>
+                <Typography fontWeight={600}>₹{platformFee.toFixed(2)}</Typography>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography color="text.secondary">Packaging Charges</Typography>
+                <Typography fontWeight={600}>₹{packagingCharges.toFixed(2)}</Typography>
               </Box>
             </Stack>
             

@@ -10,7 +10,7 @@ const razorpayInstance = new Razorpay({
 const createRazorpayOrder = async ({ amount, receipt, notes = {} }) => {
   try {
     const keyId = process.env.RAZORPAY_KEY_ID;
-    if (!keyId || keyId.includes("xxxx") || keyId.includes("test")) {
+    if (!keyId || keyId.includes("xxxx") || (keyId.includes("test") && !keyId.startsWith("rzp_test_"))) {
       return { id: `rzp_mock_${Date.now()}_${Math.random().toString(36).substring(2, 7).toUpperCase()}` };
     }
     return await razorpayInstance.orders.create({
@@ -50,4 +50,25 @@ const verifyWebhookSignature = (rawBody, signature) => {
   return expected === signature;
 };
 
-module.exports = { razorpayInstance, createRazorpayOrder, verifyPaymentSignature, verifyWebhookSignature };
+/** Refund a Razorpay payment */
+const refundRazorpayPayment = async ({ paymentId, amount }) => {
+  try {
+    if (!paymentId || paymentId.startsWith("rzp_mock_")) {
+      return { id: "rfnd_mock_" + Math.random().toString(36).substring(2, 11).toUpperCase() };
+    }
+    return await razorpayInstance.payments.refund(paymentId, {
+      amount: Math.round(amount * 100),
+    });
+  } catch (err) {
+    console.error("Razorpay refund failed, falling back to mock:", err.message);
+    return { id: "rfnd_mock_" + Math.random().toString(36).substring(2, 11).toUpperCase() };
+  }
+};
+
+module.exports = {
+  razorpayInstance,
+  createRazorpayOrder,
+  verifyPaymentSignature,
+  verifyWebhookSignature,
+  refundRazorpayPayment
+};

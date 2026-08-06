@@ -52,6 +52,9 @@ const orderSchema = new mongoose.Schema(
     couponCode: String,
     shippingFee: { type: Number, default: 0 },
     gstAmount: { type: Number, default: 0 },
+    platformFee: { type: Number, default: 0 },
+    packagingCharges: { type: Number, default: 0 },
+    donationAmount: { type: Number, default: 0 },
     total: { type: Number, required: true },
 
     paymentMethod: { type: String, enum: ["razorpay", "cod"], required: true },
@@ -105,6 +108,20 @@ const orderSchema = new mongoose.Schema(
     invoiceAttached: { type: Boolean, default: false },
     rejectionReason: String,
     notes: String,
+    tags: [String],
+    transactions: [
+      {
+        txnType: { type: String, enum: ["payment", "refund"], default: "payment" },
+        amount: Number,
+        status: { type: String, default: "Success" },
+        txnRefId: String,
+        paymentMode: { type: String, default: "BANK" },
+        remark: String,
+        reason: String,
+        refundedBy: String,
+        at: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );

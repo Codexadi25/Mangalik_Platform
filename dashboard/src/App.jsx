@@ -48,6 +48,7 @@ import SalesReferrals from "./pages/salesPartner/Referrals";
 import SalesCommissions from "./pages/salesPartner/Commissions";
 
 import Lifeline from "./pages/lifeline/Lifeline";
+import OrderPrintDocs from "./pages/OrderPrintDocs";
 
 const ALL_STAFF = ["superadmin", "admin", "manager", "vendor", "agent", "deliveryPartner", "salesPartner"];
 
@@ -119,6 +120,7 @@ function App() {
 
               {/* ---------------- LIFELINE (Full-screen, no sidebar) ---------------- */}
               <Route path="/lifeline/*" element={<RoleGuard allow={ALL_STAFF}><Lifeline /></RoleGuard>} />
+              <Route path="/orders/:id/print" element={<RoleGuard allow={ALL_STAFF}><OrderPrintDocs /></RoleGuard>} />
 
               <Route path="/" element={<RoleGuard allow={ALL_STAFF}><DashboardLayout><AdminOverview /></DashboardLayout></RoleGuard>} />
             </Routes>

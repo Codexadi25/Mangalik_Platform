@@ -74,6 +74,7 @@ const productSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true, index: true }, // can be force-disabled by admin/superadmin
     isFeatured: { type: Boolean, default: false },
     isApprovedByAdmin: { type: Boolean, default: false }, // vendor-submitted products need approval
+    eligibleForReplacement: { type: Boolean, default: true },
 
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

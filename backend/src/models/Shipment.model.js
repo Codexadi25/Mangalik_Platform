@@ -7,6 +7,7 @@ const shipmentSchema = new mongoose.Schema(
     trackingId: { type: String, required: true },
     deliveryPartnerName: { type: String, required: true }, // e.g. Porter, Shadowfax, Pidge
     partnerPhone: String,
+    vehiclePlateNo: String,
     status: { type: String, enum: ["assigned", "picked_up", "in_transit", "delivered"], default: "assigned" },
   },
   { timestamps: true }

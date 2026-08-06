@@ -19,6 +19,12 @@ const businessSettingsSchema = new mongoose.Schema(
     deliveryChargePerKm: { type: Number, default: 12 },
     baseDeliveryDistanceLimit: { type: Number, default: 5 },
     baseDeliveryCharge: { type: Number, default: 49 },
+    gstNumber: { type: String, default: "29AADCD4946L1Z6" },
+    fssaiLicenseNumber: { type: String, default: "12726055000219" },
+    billingAddress: { type: String, default: "26, Yogendra Vihar, Naubasta, Kanpur Nagar, Uttar Pradesh - 208021" },
+    platformFee: { type: Number, default: 14.90 },
+    packagingCharges: { type: Number, default: 10.00 },
+    donationAmount: { type: Number, default: 3.00 },
   },
   { timestamps: true }
 );

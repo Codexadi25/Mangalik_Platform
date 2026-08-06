@@ -41,6 +41,7 @@ const Catalog = () => {
   const [editingItemIdx, setEditingItemIdx] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [isActive, setIsActive] = useState(true);
+  const [eligibleForReplacement, setEligibleForReplacement] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
@@ -90,6 +91,7 @@ const Catalog = () => {
     setEditingItemIdx(null);
     setUploadedImages([]);
     setIsActive(true);
+    setEligibleForReplacement(true);
     setDrawerOpen(true);
   };
 
@@ -109,6 +111,7 @@ const Catalog = () => {
     setEditingItemIdx(null);
     setUploadedImages(product.images?.map(img => img.url) || []);
     setIsActive(product.isActive !== false);
+    setEligibleForReplacement(product.eligibleForReplacement !== false);
     setDrawerOpen(true);
   };
 
@@ -172,6 +175,7 @@ const Catalog = () => {
       tags: tagsArray,
       gstPercent: Number(formData.gstPercent) || 5,
       whatsInTheBox: formData.whatsInTheBox,
+      eligibleForReplacement,
     };
 
     try {
@@ -675,6 +679,20 @@ const Catalog = () => {
                   />
                   <label htmlFor="isActiveToggle" style={{ margin: 0, cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: '#334155' }}>
                     {isActive ? "✅ Listed on Platform" : "🚫 Unlisted (Hidden from customers)"}
+                  </label>
+                </div>
+
+                {/* Replacement eligibility toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1.5px solid #e2e8f0' }}>
+                  <input
+                    type="checkbox"
+                    id="eligibleForReplacementToggle"
+                    checked={eligibleForReplacement}
+                    onChange={e => setEligibleForReplacement(e.target.checked)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#E33C24' }}
+                  />
+                  <label htmlFor="eligibleForReplacementToggle" style={{ margin: 0, cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: '#334155' }}>
+                    {eligibleForReplacement ? "🔄 Eligible for Replacement" : "⚠️ Not Eligible for Replacement"}
                   </label>
                 </div>
 

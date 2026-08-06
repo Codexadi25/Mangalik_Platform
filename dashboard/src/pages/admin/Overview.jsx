@@ -323,6 +323,29 @@ const Overview = () => {
                         <Typography variant="body2" color="text.secondary">Grand Total:</Typography>
                         <Typography variant="body2" fontWeight={800} color="primary.main">₹ {selectedOrder.total}</Typography>
                       </Box>
+                      <Divider sx={{ my: 1 }} />
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button 
+                          variant="outlined" 
+                          color="error" 
+                          size="small"
+                          fullWidth
+                          onClick={() => window.open(`/orders/${selectedOrder._id}/print?type=invoice`, "_blank")}
+                          sx={{ textTransform: "none", fontSize: 11, fontWeight: 700 }}
+                        >
+                          🖨️ Print Invoice
+                        </Button>
+                        <Button 
+                          variant="outlined" 
+                          color="primary" 
+                          size="small"
+                          fullWidth
+                          onClick={() => window.open(`/orders/${selectedOrder._id}/print?type=bill`, "_blank")}
+                          sx={{ textTransform: "none", fontSize: 11, fontWeight: 700 }}
+                        >
+                          📄 Print Bill
+                        </Button>
+                      </Box>
                     </Stack>
                   </Paper>
                 </Grid>

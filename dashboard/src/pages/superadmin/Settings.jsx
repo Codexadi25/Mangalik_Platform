@@ -49,7 +49,10 @@ const Settings = () => {
     businessLocation: "https://maps.app.goo.gl/EzBC1JZsobNbr1gy5",
     deliveryChargePerKm: 12,
     baseDeliveryDistanceLimit: 5,
-    baseDeliveryCharge: 49
+    baseDeliveryCharge: 49,
+    gstNumber: "",
+    fssaiLicenseNumber: "",
+    billingAddress: ""
   });
   const [agreed, setAgreed] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -114,6 +117,12 @@ const Settings = () => {
         deliveryChargePerKm: Number(settings.deliveryChargePerKm),
         baseDeliveryDistanceLimit: Number(settings.baseDeliveryDistanceLimit),
         baseDeliveryCharge: Number(settings.baseDeliveryCharge),
+        gstNumber: settings.gstNumber,
+        fssaiLicenseNumber: settings.fssaiLicenseNumber,
+        billingAddress: settings.billingAddress,
+        platformFee: Number(settings.platformFee),
+        packagingCharges: Number(settings.packagingCharges),
+        donationAmount: Number(settings.donationAmount),
       };
 
       // Only include subscription fields if superadmin
@@ -413,6 +422,95 @@ const Settings = () => {
                   label="Delivery Charge / Km (₹)"
                   value={settings.deliveryChargePerKm || 0}
                   onChange={(e) => setSettings({ ...settings, deliveryChargePerKm: Number(e.target.value) })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Taxation & Licensing Settings Section */}
+            <Typography variant="h6" fontWeight={800} color="#7C2D12" sx={{ mt: 5, mb: 0.5 }}>
+              Taxation & Licensing Settings
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+              Verify and update governmental registrations used in your GST bills and invoices.
+            </Typography>
+            <Divider sx={{ mb: 3, borderColor: "rgba(255, 111, 30, 0.1)" }} />
+            
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="GST Number"
+                  value={settings.gstNumber || ""}
+                  onChange={(e) => setSettings({ ...settings, gstNumber: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="FSSAI License Number"
+                  value={settings.fssaiLicenseNumber || ""}
+                  onChange={(e) => setSettings({ ...settings, fssaiLicenseNumber: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Billing Address for Invoices & GST Bills"
+                  value={settings.billingAddress || ""}
+                  onChange={(e) => setSettings({ ...settings, billingAddress: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Transaction & Fee Defaults Section */}
+            <Typography variant="h6" fontWeight={800} color="#7C2D12" sx={{ mt: 5, mb: 0.5 }}>
+              Transaction & Fee Defaults
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+              Set default values for platform fees, packaging charges, and donations.
+            </Typography>
+            <Divider sx={{ mb: 3, borderColor: "rgba(255, 111, 30, 0.1)" }} />
+            
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Platform Fee (₹)"
+                  value={settings.platformFee || 0}
+                  onChange={(e) => setSettings({ ...settings, platformFee: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Packaging Charges (₹)"
+                  value={settings.packagingCharges || 0}
+                  onChange={(e) => setSettings({ ...settings, packagingCharges: e.target.value })}
+                  size="small"
+                  sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Donation to Feeding India (₹)"
+                  value={settings.donationAmount || 0}
+                  onChange={(e) => setSettings({ ...settings, donationAmount: e.target.value })}
                   size="small"
                   sx={{ "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#FF6F1E" } }}
                 />

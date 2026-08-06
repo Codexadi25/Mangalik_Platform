@@ -4,7 +4,7 @@ const Cart = require("../models/Cart.model");
 const Product = require("../models/Product.model");
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
-const { createRazorpayOrder, verifyPaymentSignature } = require("../services/payment.service");
+const { createRazorpayOrder, verifyPaymentSignature, refundRazorpayPayment } = require("../services/payment.service");
 const { getSettings } = require("../middleware/platformControl.middleware");
 
 const generateOrderNumber = () => `MGK-${Date.now().toString().slice(-8)}-${uuidv4().slice(0, 4).toUpperCase()}`;
@@ -90,11 +90,6 @@ const checkout = asyncHandler(async (req, res) => {
     const pin = parseInt(shippingAddress.pincode.toString().replace(/\D/g, "")) || 0;
     distance = 1 + (pin % 25); // consistently generate a distance between 1 and 25 km
   }
-
-  let shippingFee = bSettings.baseDeliveryCharge;
-  if (distance > bSettings.baseDeliveryDistanceLimit) {
-    shippingFee += Math.round((distance - bSettings.baseDeliveryDistanceLimit) * bSettings.deliveryChargePerKm);
-  }
   
   let discount = 0;
   let appliedCoupon = null;
@@ -149,8 +144,26 @@ const checkout = asyncHandler(async (req, res) => {
   }
 
   const discountedSubtotal = Math.max(0, subtotal - discount);
+
+  // Calculate delivery fee dynamically based on business settings:
+  let baseCharge = Number(bSettings.baseDeliveryCharge ?? 49);
+  let chargePerKm = Number(bSettings.deliveryChargePerKm ?? 12);
+  let distanceLimit = Number(bSettings.baseDeliveryDistanceLimit ?? 5);
+
+  let shippingFee = baseCharge;
+  if (distance > distanceLimit) {
+    shippingFee += Math.round((distance - distanceLimit) * chargePerKm);
+  }
+  if (discountedSubtotal > 999) {
+    shippingFee = 0;
+  }
+
   const gstAmount = Math.round(discountedSubtotal * 0.05 * 100) / 100;
-  const total = discountedSubtotal + shippingFee + gstAmount;
+  const platformFee = bSettings.platformFee !== undefined ? bSettings.platformFee : 14.90;
+  const packagingCharges = bSettings.packagingCharges !== undefined ? bSettings.packagingCharges : 10.00;
+  const donationAmount = bSettings.donationAmount !== undefined ? bSettings.donationAmount : 3.00;
+
+  const total = Number((discountedSubtotal + shippingFee + gstAmount + platformFee + packagingCharges + donationAmount).toFixed(2));
   const orderNumber = generateOrderNumber();
 
   if (paymentMethod === "razorpay") {
@@ -165,6 +178,9 @@ const checkout = asyncHandler(async (req, res) => {
       couponCode: appliedCoupon?.code,
       shippingFee,
       gstAmount,
+      platformFee,
+      packagingCharges,
+      donationAmount,
       total,
       paymentMethod,
       paymentStatus: "pending",
@@ -191,6 +207,9 @@ const checkout = asyncHandler(async (req, res) => {
     couponCode: appliedCoupon?.code,
     shippingFee,
     gstAmount,
+    platformFee,
+    packagingCharges,
+    donationAmount,
     total,
     paymentMethod: "cod",
     paymentStatus: "pending",
@@ -218,23 +237,59 @@ const checkout = asyncHandler(async (req, res) => {
 
 /** POST /api/orders/verify-payment — verifies Razorpay signature & confirms order. */
 const verifyPayment = asyncHandler(async (req, res) => {
-  const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+  const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature, status, reason } = req.body;
+
+  const order = await Order.findById(orderId);
+  if (!order) throw new ApiError(404, "Order not found.");
+
+  if (status === "failed" || !razorpaySignature) {
+    order.paymentStatus = "failed";
+    order.status = "cancelled";
+    if (!order.tags.includes("PG Failed")) {
+      order.tags.push("PG Failed");
+    }
+    order.statusHistory.push({
+      status: "cancelled",
+      note: `Payment failed: ${reason || "User cancelled or transaction failed."}`,
+      changedBy: req.user._id
+    });
+    await order.save();
+    return res.status(200).json({ success: false, message: "Order payment marked as failed.", data: order });
+  }
 
   const valid = verifyPaymentSignature({
     orderId: razorpayOrderId,
     paymentId: razorpayPaymentId,
     signature: razorpaySignature,
   });
-  if (!valid) throw new ApiError(400, "Payment verification failed. Possible tampering detected.");
-
-  const order = await Order.findById(orderId);
-  if (!order) throw new ApiError(404, "Order not found.");
+  if (!valid) {
+    order.paymentStatus = "failed";
+    order.status = "cancelled";
+    if (!order.tags.includes("PG Failed")) {
+      order.tags.push("PG Failed");
+    }
+    order.statusHistory.push({
+      status: "cancelled",
+      note: "Payment signature validation failed. Possible tampering detected.",
+      changedBy: req.user._id
+    });
+    await order.save();
+    throw new ApiError(400, "Payment verification failed. Possible tampering detected.");
+  }
 
   order.paymentStatus = "paid";
   order.status = "confirmed";
   order.razorpay.paymentId = razorpayPaymentId;
   order.razorpay.signature = razorpaySignature;
   order.statusHistory.push({ status: "confirmed", changedBy: req.user._id });
+  order.transactions.push({
+    txnType: "payment",
+    amount: order.total,
+    status: "Success",
+    txnRefId: razorpayPaymentId || "TXN" + Date.now(),
+    paymentMode: "BANK",
+    remark: "Paid digitally via Razorpay"
+  });
   await order.save();
 
   await Cart.findOneAndUpdate({ user: req.user._id }, { items: [] });
@@ -283,6 +338,14 @@ const replaceOrder = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Only delivered orders can be replaced.");
   }
 
+  const Product = require("../models/Product.model");
+  for (const item of order.items) {
+    const product = await Product.findById(item.product);
+    if (product && product.eligibleForReplacement === false) {
+      throw new ApiError(400, `Product "${product.title}" is not eligible for replacement.`);
+    }
+  }
+
   order.status = "replacement_requested";
   order.statusHistory.push({
     status: "replacement_requested",
@@ -302,23 +365,71 @@ const getAllOrders = asyncHandler(async (req, res) => {
 });
 
 const searchLifelineOrders = asyncHandler(async (req, res) => {
-  const { query } = req.query;
+  const { query, type, limit, skip } = req.query;
   const dbQuery = {};
+
+  const queryLimit = parseInt(limit, 10) || 20;
+  const querySkip = parseInt(skip, 10) || 0;
+
   if (query) {
-    dbQuery.$or = [
-      { orderNumber: { $regex: query, $options: "i" } }
-    ];
+    const mongoose = require("mongoose");
+    if (type === "orderNumber") {
+      dbQuery.orderNumber = { $regex: query, $options: "i" };
+    } else if (type === "orderId") {
+      if (mongoose.Types.ObjectId.isValid(query)) {
+        dbQuery._id = query;
+      } else {
+        return res.status(200).json({ success: true, data: [], hasMore: false });
+      }
+    } else if (type === "customerId") {
+      if (mongoose.Types.ObjectId.isValid(query)) {
+        dbQuery.user = query;
+      } else {
+        return res.status(200).json({ success: true, data: [], hasMore: false });
+      }
+    } else if (type === "vendorId") {
+      if (mongoose.Types.ObjectId.isValid(query)) {
+        dbQuery["items.vendor"] = query;
+      } else {
+        return res.status(200).json({ success: true, data: [], hasMore: false });
+      }
+    } else if (type === "phone") {
+      const User = require("../models/User.model");
+      const matchedUsers = await User.find({ phone: { $regex: query, $options: "i" } });
+      const userIds = matchedUsers.map(u => u._id);
+      dbQuery.user = { $in: userIds };
+    } else if (type === "deliveryPhone") {
+      const User = require("../models/User.model");
+      const matchedUsers = await User.find({ role: "deliveryPartner", phone: { $regex: query, $options: "i" } });
+      const userIds = matchedUsers.map(u => u._id);
+      dbQuery.assignedDeliveryPartner = { $in: userIds };
+    } else if (type === "email") {
+      const User = require("../models/User.model");
+      const matchedUsers = await User.find({ email: { $regex: query, $options: "i" } });
+      const userIds = matchedUsers.map(u => u._id);
+      dbQuery.user = { $in: userIds };
+    } else {
+      dbQuery.orderNumber = { $regex: query, $options: "i" };
+    }
   }
-  
+
+  const total = await Order.countDocuments(dbQuery);
   const orders = await Order.find(dbQuery)
     .populate("user")
     .populate("items.vendor")
     .populate("assignedDeliveryPartner")
     .populate("salesPartnerRef")
+    .populate({ path: "referredVendor" })
     .sort("-createdAt")
-    .limit(20);
-    
-  res.status(200).json({ success: true, data: orders });
+    .skip(querySkip)
+    .limit(queryLimit);
+
+  res.status(200).json({
+    success: true,
+    data: orders,
+    hasMore: querySkip + orders.length < total,
+    total
+  });
 });
 
 const reportIssue = asyncHandler(async (req, res) => {
@@ -346,7 +457,16 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order) throw new ApiError(404, "Order not found.");
 
-  const { status, rejectionReason, deliveryPartnerName, trackingId } = req.body;
+  const { status, rejectionReason, deliveryPartnerName, trackingId, partnerPhone, vehiclePlateNo } = req.body;
+  if (status === "replacement_requested" || status === "replaced") {
+    const Product = require("../models/Product.model");
+    for (const item of order.items) {
+      const product = await Product.findById(item.product);
+      if (product && product.eligibleForReplacement === false) {
+        throw new ApiError(400, `Product "${product.title}" is not eligible for replacement.`);
+      }
+    }
+  }
   if (!status) throw new ApiError(400, "Status is required.");
 
   let historyNote = "Status updated by admin/staff.";
@@ -357,6 +477,37 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     }
     order.rejectionReason = rejectionReason;
     historyNote = `Order rejected. Reason: ${rejectionReason}`;
+
+    // Ensure we have a payment transaction log if it was paid
+    if (order.paymentStatus === "paid" && order.transactions.filter(t => t.txnType === "payment").length === 0) {
+      order.transactions.push({
+        txnType: "payment",
+        amount: order.total,
+        status: "Success",
+        txnRefId: order.razorpay?.paymentId || "TXN" + Math.random().toString(36).substring(2, 11).toUpperCase(),
+        paymentMode: order.paymentMethod === "razorpay" ? "BANK" : "COD",
+        remark: "Paid digitally",
+        at: order.createdAt
+      });
+    }
+
+    // Process refund to original payment source
+    const refundRes = await refundRazorpayPayment({
+      paymentId: order.razorpay?.paymentId,
+      amount: order.total
+    });
+    order.paymentStatus = "refunded";
+    order.transactions.push({
+      txnType: "refund",
+      amount: order.total,
+      status: "Success",
+      txnRefId: refundRes.id,
+      paymentMode: order.paymentMethod === "razorpay" ? "BANK" : "COD",
+      remark: `Refunded to original source. Reason: ${rejectionReason}`,
+      reason: rejectionReason,
+      refundedBy: req.user?.name || req.user?.email || "Admin",
+      at: new Date()
+    });
   } else if (status === "confirmed") {
     historyNote = "Order accepted and confirmed.";
   } else if (status === "processing") {
@@ -373,6 +524,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         shipmentId: "SHP-" + Math.random().toString(36).substring(2, 11).toUpperCase(),
         trackingId: trkId,
         deliveryPartnerName: partner,
+        partnerPhone: partnerPhone || undefined,
+        vehiclePlateNo: vehiclePlateNo || undefined,
         status: "assigned",
       },
       { upsert: true, new: true }
@@ -388,6 +541,20 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       { status: "picked_up" }
     );
     historyNote = "Order picked up by delivery partner and is out for delivery.";
+  } else if (status === "delivered") {
+    order.paymentStatus = "paid";
+    historyNote = "Order delivered successfully.";
+    if (order.transactions.filter(t => t.txnType === "payment").length === 0) {
+      order.transactions.push({
+        txnType: "payment",
+        amount: order.total,
+        status: "Success",
+        txnRefId: "TXN-COD-" + Math.random().toString(36).substring(2, 11).toUpperCase(),
+        paymentMode: order.paymentMethod?.toUpperCase() || "COD",
+        remark: "Payment received on delivery",
+        at: new Date()
+      });
+    }
   }
 
   order.status = status;
@@ -414,7 +581,25 @@ const updateOrderFields = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order) throw new ApiError(404, "Order not found.");
 
-  Object.assign(order, req.body);
+  const { shippingAddress, saveToAddressBook, ...otherFields } = req.body;
+
+  if (shippingAddress) {
+    order.shippingAddress = shippingAddress;
+    
+    if (saveToAddressBook) {
+      const User = require("../models/User.model");
+      const userObj = await User.findById(order.user);
+      if (userObj) {
+        userObj.addresses.push({
+          ...shippingAddress,
+          isDefault: userObj.addresses.length === 0
+        });
+        await userObj.save();
+      }
+    }
+  }
+
+  Object.assign(order, otherFields);
   await order.save();
 
   const Shipment = require("../models/Shipment.model");

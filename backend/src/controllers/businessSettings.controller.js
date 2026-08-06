@@ -58,6 +58,12 @@ exports.getPublicSettings = asyncHandler(async (req, res) => {
       businessEmail: settings.businessEmail,
       supportWhatsapp: settings.supportWhatsapp,
       businessLocation: settings.businessLocation,
+      gstNumber: settings.gstNumber,
+      fssaiLicenseNumber: settings.fssaiLicenseNumber,
+      billingAddress: settings.billingAddress,
+      platformFee: settings.platformFee,
+      packagingCharges: settings.packagingCharges,
+      donationAmount: settings.donationAmount,
     }
   });
 });
@@ -79,6 +85,12 @@ exports.updateSettings = asyncHandler(async (req, res) => {
   if (req.body.deliveryChargePerKm !== undefined) settings.deliveryChargePerKm = Number(req.body.deliveryChargePerKm);
   if (req.body.baseDeliveryDistanceLimit !== undefined) settings.baseDeliveryDistanceLimit = Number(req.body.baseDeliveryDistanceLimit);
   if (req.body.baseDeliveryCharge !== undefined) settings.baseDeliveryCharge = Number(req.body.baseDeliveryCharge);
+  if (req.body.gstNumber !== undefined) settings.gstNumber = req.body.gstNumber;
+  if (req.body.fssaiLicenseNumber !== undefined) settings.fssaiLicenseNumber = req.body.fssaiLicenseNumber;
+  if (req.body.billingAddress !== undefined) settings.billingAddress = req.body.billingAddress;
+  if (req.body.platformFee !== undefined) settings.platformFee = Number(req.body.platformFee);
+  if (req.body.packagingCharges !== undefined) settings.packagingCharges = Number(req.body.packagingCharges);
+  if (req.body.donationAmount !== undefined) settings.donationAmount = Number(req.body.donationAmount);
 
   if (req.user && req.user.role === "superadmin") {
     const { subscriptionPlan, subscriptionCost, subscriptionProvider, subscriptionStatus, governedBy } = req.body;
